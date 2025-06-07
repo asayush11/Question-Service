@@ -1,12 +1,15 @@
 package com.example.questions_service.Entity;
 import com.example.questions_service.DTO.QuestionDTO;
 import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 
 @Entity
 public class Question {
     @Id
-    private String questionId;
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Integer questionId;
     private String question;
     private String category;
     private String difficulty;
@@ -27,7 +30,7 @@ public class Question {
         this.solution = questionDTO.getSolution();
     }
 
-    public String getQuestionId() {
+    public Integer getQuestionId() {
         return questionId;
     }
 
