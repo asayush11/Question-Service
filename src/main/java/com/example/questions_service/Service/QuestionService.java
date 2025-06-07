@@ -3,10 +3,12 @@ package com.example.questions_service.Service;
 import com.example.questions_service.Entity.Question;
 import com.example.questions_service.Repository.QuestionRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 
 import java.util.Collections;
 import java.util.List;
 
+@Service
 public class QuestionService {
     @Autowired
     QuestionRepository questionRepository;

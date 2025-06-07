@@ -14,6 +14,7 @@ public class Question {
     private String option2;
     private String option3;
     private String option4;
+    private String solution;
 
     public Question(QuestionDTO questionDTO) {
         this.question = questionDTO.getQuestion();
@@ -23,6 +24,7 @@ public class Question {
         this.option2 = questionDTO.getOption2();
         this.option3 = questionDTO.getOption3();
         this.option4 = questionDTO.getOption4();
+        this.solution = questionDTO.getSolution();
     }
 
     public String getQuestionId() {
@@ -55,5 +57,9 @@ public class Question {
 
     public String getOption4() {
         return option4;
+    }
+
+    public String getSolution() {
+        return solution;
     }
 }

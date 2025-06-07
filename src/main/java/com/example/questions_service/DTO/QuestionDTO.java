@@ -24,6 +24,8 @@ public class QuestionDTO {
     @Size(min = 1)
     private String option4;
 
+    private String solution;
+
     public String getQuestion() {
         return question;
     }
@@ -50,5 +52,8 @@ public class QuestionDTO {
 
     public String getOption4() {
         return option4;
+    }
+    public String getSolution() {
+        return solution;
     }
 }
