@@ -1,11 +1,12 @@
 package com.example.questions_service.Service;
-
 import com.example.questions_service.Entity.Question;
 import com.example.questions_service.Repository.QuestionRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 
 @Service
 public class QuestionService {
@@ -17,23 +18,20 @@ public class QuestionService {
     }
 
     public List<Question> getQuestions(String category, int numberOfEasy, int numberOfMedium, int numberOfDifficult){
-        List<Question> questions1;
-        questions1 = questionRepository.findByCategoryAndDifficulty(category, "EASY");
-        Collections.shuffle(questions1);
-        questions1 = questions1.subList(0,numberOfEasy);
+        List<Question> result = new ArrayList<>();
+        Map<String, Integer> difficultyCount = Map.of(
+                "EASY", numberOfEasy,
+                "MEDIUM", numberOfMedium,
+                "HARD",numberOfDifficult
+        );
 
-        List<Question> questions2;
-        questions2 = questionRepository.findByCategoryAndDifficulty(category, "MEDIUM");
-        Collections.shuffle(questions2);
-        questions2 = questions2.subList(0,numberOfMedium);
-
-        List<Question> questions3;
-        questions3 = questionRepository.findByCategoryAndDifficulty(category, "HARD");
-        Collections.shuffle(questions3);
-        questions3 = questions3.subList(0,numberOfDifficult);
-
-        questions2.addAll(questions3);
-        questions1.addAll(questions2);
-        return questions1;
+        for(Map.Entry<String, Integer> entry : difficultyCount.entrySet()) {
+            String difficulty = entry.getKey();
+            Integer count = entry.getValue();
+            List<Question> questions = questionRepository.findByCategoryAndDifficulty(category, difficulty);
+            Collections.shuffle(questions);
+            result.addAll(questions.subList(0, Math.min(count, questions.size())));
+        }
+        return result;
     }
 }
