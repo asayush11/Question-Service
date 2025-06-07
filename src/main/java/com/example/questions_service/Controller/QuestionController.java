@@ -35,9 +35,9 @@ public class QuestionController {
     }
 
     @GetMapping("/retrieve")
-    public ResponseEntity<APIResponse<List<Question>>> getQuestions(@RequestParam String category, @RequestParam String difficulty, @RequestParam int numberOfQuestions){
+    public ResponseEntity<APIResponse<List<Question>>> getQuestions(@RequestParam String category, @RequestParam int numberOfEasy, @RequestParam int numberOfMedium, @RequestParam int numberOfDifficult){
         try{
-            return ResponseEntity.ok().body(APIResponse.success("Questions Fetched",questionService.getQuestions(category, difficulty, numberOfQuestions)));
+            return ResponseEntity.ok().body(APIResponse.success("Questions Fetched",questionService.getQuestions(category, numberOfEasy, numberOfMedium, numberOfDifficult)));
         } catch (Exception e){
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(APIResponse.error("Error fetching question", e.getMessage()));
         }
