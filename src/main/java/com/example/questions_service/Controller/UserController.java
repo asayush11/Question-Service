@@ -11,7 +11,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/users")
 public class UserController {
-    @PostMapping("/login")
+    @PostMapping("/login/{password}")
     public ResponseEntity<APIResponse<Boolean>>  authenticateUser(@PathVariable String password){
         if(password.equals("123456")){
             return ResponseEntity.ok(APIResponse.success("Login successful", true));
