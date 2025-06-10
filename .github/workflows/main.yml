@@ -1,0 +1,19 @@
+name: Keep Render Service Alive
+
+on:
+  schedule:
+    # Runs every 11 minutes
+    - cron: '*/11 * * * *'
+  workflow_dispatch: # Allows manual triggering
+
+jobs:
+  keep-alive:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Ping Render Service
+      run: |
+        curl -f -s -o /dev/null -w "%{http_code}" https://question-service-82ea.onrender.com/actuator/health || echo "Service might be down"
+        
+    - name: Log timestamp
+      run: echo "Pinged at $(date)"
