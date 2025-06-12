@@ -3,6 +3,9 @@ import com.example.questions_service.Entity.Question;
 import com.example.questions_service.Repository.QuestionRepository;
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
+import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.instrument.binder.cache.CaffeineCacheMetrics;
+import jakarta.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import java.util.*;
@@ -11,12 +14,20 @@ import java.util.*;
 public class QuestionService {
 
     @Autowired
+    MeterRegistry meterRegistry;
+
+    @PostConstruct
+    public void bindCaffeineCacheMetrics() {
+        CaffeineCacheMetrics.monitor(meterRegistry, questionCache, "questionCache");
+    }
+    @Autowired
     QuestionRepository questionRepository;
 
     private static final int MAX_CACHE_SIZE = 15;
 
     private final Cache<String, List<Question>> questionCache = Caffeine.newBuilder()
             .maximumSize(MAX_CACHE_SIZE)
+            .recordStats()
             .build();
 
     public List<Question> getQuestions(String category, int numberOfEasy, int numberOfMedium, int numberOfDifficult) {
