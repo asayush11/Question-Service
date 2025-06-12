@@ -69,7 +69,7 @@ public class QuestionService {
     public void createQuestion(Question question) {
         try {
             questionRepository.save(question);
-            invalidateCache(question.getSolution(), question.getDifficulty());
+            invalidateCache(question.getCategory(), question.getDifficulty());
         } catch (Exception e) {
             throw new RuntimeException("Failed to add question", e);
         }
