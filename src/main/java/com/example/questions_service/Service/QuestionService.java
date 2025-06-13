@@ -9,6 +9,7 @@ import jakarta.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 
 @Service
 public class QuestionService {
@@ -27,6 +28,7 @@ public class QuestionService {
 
     private final Cache<String, List<Question>> questionCache = Caffeine.newBuilder()
             .maximumSize(MAX_CACHE_SIZE)
+            .expireAfterAccess(24, TimeUnit.HOURS)
             .recordStats()
             .build();
 
