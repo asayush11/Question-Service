@@ -12,4 +12,7 @@ import java.util.List;
 public interface QuestionRepository extends JpaRepository<Question,String> {
     @Query("SELECT q FROM Question q WHERE q.category = :category AND q.difficulty = :difficulty")
     public List<Question> findByCategoryAndDifficulty(@Param("category") String category, @Param("difficulty") String difficulty);
+
+    @Query(value = "SELECT 1", nativeQuery = true)
+    void wakeDbLightly();
 }
