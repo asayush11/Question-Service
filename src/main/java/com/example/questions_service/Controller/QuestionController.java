@@ -26,7 +26,7 @@ public class QuestionController {
 
     @PostMapping("/create")
     public ResponseEntity<APIResponse<String>> addQuestion(@Valid @RequestBody QuestionDTO question, @CookieValue(value = "email", required = false) String email){
-        if (email == null || userService.checkLoggedIn(email)) {
+        if (email == null || !userService.checkLoggedIn(email)) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(APIResponse.error("Invalid user","Invalid User"));
         }
         if(!Objects.equals(question.getDifficulty(), "HARD") || !Objects.equals(question.getDifficulty(), "EASY") || !Objects.equals(question.getDifficulty(), "MEDIUM")){

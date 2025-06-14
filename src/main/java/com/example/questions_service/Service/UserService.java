@@ -25,15 +25,13 @@ public class UserService {
     @Autowired
     UserRepository userRepository;
 
-    private static final int MAX_CACHE_SIZE = 100;
-
     private final Cache<String, Boolean> userCache = Caffeine.newBuilder()
-            .maximumSize(MAX_CACHE_SIZE)
             .expireAfterWrite(10, TimeUnit.MINUTES)
             .recordStats()
             .build();
 
     public boolean createUser(String username, String email, String password) {
+        email = email.toLowerCase();
         if(userRepository.findByEmailID(email).isPresent()){
             return false;
         } else {
@@ -45,6 +43,7 @@ public class UserService {
     }
 
     public boolean login(String email, String password) {
+        email = email.toLowerCase();
         Optional<User> user = userRepository.findByEmailID(email);
         boolean validUser = user.filter(value -> Objects.equals(value.getPassword(), password)).isPresent();
         if(validUser){
@@ -55,6 +54,7 @@ public class UserService {
     }
 
     public boolean checkLoggedIn(String email) {
+        email = email.toLowerCase();
         return Boolean.TRUE.equals(userCache.getIfPresent(email));
     }
 }
