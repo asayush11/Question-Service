@@ -9,7 +9,7 @@ import org.springframework.stereotype.Repository;
 import java.util.List;
 
 @Repository
-public interface QuestionRepository extends JpaRepository<Question,String> {
+public interface QuestionRepository extends JpaRepository<Question,Integer> {
     @Query("SELECT q FROM Question q WHERE q.category = :category AND q.difficulty = :difficulty")
     public List<Question> findByCategoryAndDifficulty(@Param("category") String category, @Param("difficulty") String difficulty);
 
