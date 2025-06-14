@@ -1,7 +1,7 @@
 package com.example.questions_service.Controller;
-
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletResponse;
 import com.example.questions_service.DTO.UserDTO;
-import com.example.questions_service.Repository.UserRepository;
 import com.example.questions_service.Service.DBWakeUp;
 import com.example.questions_service.Service.UserService;
 import com.example.questions_service.Utility.APIResponse;
@@ -20,9 +20,15 @@ public class UserController {
     UserService userService;
 
     @PostMapping("/login")
-    public ResponseEntity<APIResponse<Boolean>>  authenticateUser(@Valid @RequestBody UserDTO user){
+    public ResponseEntity<APIResponse<Boolean>>  authenticateUser(@Valid @RequestBody UserDTO user, HttpServletResponse response){
         if(userService.login(user.getEmail(), user.getPassword())){
             dbWakeUp.warmUpDb();
+            Cookie emailCookie = new Cookie("email", user.getEmail());
+            emailCookie.setHttpOnly(true);
+            emailCookie.setSecure(false);
+            emailCookie.setPath("/");
+            emailCookie.setMaxAge(10 * 60);
+            response.addCookie(emailCookie);
             return ResponseEntity.ok(APIResponse.success("Login successful", true));
         } else {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(APIResponse.error("Login unsuccessful", "Invalid Credentials"));

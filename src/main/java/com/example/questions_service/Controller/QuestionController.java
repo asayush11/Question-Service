@@ -3,6 +3,7 @@ package com.example.questions_service.Controller;
 import com.example.questions_service.DTO.QuestionDTO;
 import com.example.questions_service.Entity.Question;
 import com.example.questions_service.Service.QuestionService;
+import com.example.questions_service.Service.UserService;
 import com.example.questions_service.Utility.APIResponse;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,8 +21,14 @@ public class QuestionController {
     @Autowired
     QuestionService questionService;
 
+    @Autowired
+    UserService userService;
+
     @PostMapping("/create")
-    public ResponseEntity<APIResponse<String>> addQuestion(@Valid @RequestBody QuestionDTO question){
+    public ResponseEntity<APIResponse<String>> addQuestion(@Valid @RequestBody QuestionDTO question, @CookieValue(value = "email", required = false) String email){
+        if (email == null || userService.checkLoggedIn(email)) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(APIResponse.error("Invalid user","Invalid User"));
+        }
         if(!Objects.equals(question.getDifficulty(), "HARD") || !Objects.equals(question.getDifficulty(), "EASY") || !Objects.equals(question.getDifficulty(), "MEDIUM")){
             ResponseEntity.status(HttpStatus.BAD_REQUEST).body(APIResponse.error("Failed to add question","Enter Valid Difficulty"));
         }

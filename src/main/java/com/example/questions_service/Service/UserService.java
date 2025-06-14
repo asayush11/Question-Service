@@ -8,10 +8,12 @@ import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.binder.cache.CaffeineCacheMetrics;
 import jakarta.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
+@Service
 public class UserService {
     @Autowired
     MeterRegistry meterRegistry;
@@ -50,5 +52,9 @@ public class UserService {
             userCache.put(email, true);
         }
         return validUser;
+    }
+
+    public boolean checkLoggedIn(String email) {
+        return Boolean.TRUE.equals(userCache.getIfPresent(email));
     }
 }
