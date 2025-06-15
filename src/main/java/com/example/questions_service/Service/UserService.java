@@ -2,12 +2,14 @@ package com.example.questions_service.Service;
 
 import com.example.questions_service.Entity.User;
 import com.example.questions_service.Repository.UserRepository;
+import com.example.questions_service.Utility.JWTUtil;
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.binder.cache.CaffeineCacheMetrics;
 import jakarta.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import java.util.Objects;
 import java.util.Optional;
@@ -17,6 +19,10 @@ import java.util.concurrent.TimeUnit;
 public class UserService {
     @Autowired
     MeterRegistry meterRegistry;
+    @Autowired
+    PasswordEncoder passwordEncoder;
+    @Autowired
+    JWTUtil jwtUtil;
 
     @PostConstruct
     public void bindCaffeineCacheMetrics() {
@@ -25,8 +31,8 @@ public class UserService {
     @Autowired
     UserRepository userRepository;
 
-    private final Cache<String, Boolean> userCache = Caffeine.newBuilder()
-            .expireAfterWrite(10, TimeUnit.MINUTES)
+    private final Cache<String, String> userCache = Caffeine.newBuilder()
+            .expireAfterWrite(5, TimeUnit.HOURS)
             .recordStats()
             .build();
 
@@ -35,26 +41,38 @@ public class UserService {
         if(userRepository.findByEmailID(email).isPresent()){
             return false;
         } else {
-            User newUser = new User(username, email, password);
+            User newUser = new User(username, email, passwordEncoder.encode(password));
             userRepository.save(newUser);
-            userCache.put(email, true);
             return true;
         }
     }
 
-    public boolean login(String email, String password) {
+    public String login(String email, String password) throws Exception{
         email = email.toLowerCase();
         Optional<User> user = userRepository.findByEmailID(email);
-        boolean validUser = user.filter(value -> Objects.equals(value.getPassword(), password)).isPresent();
-        if(validUser){
-            userCache.invalidate(email);
-            userCache.put(email, true);
+        if(user.isPresent() && passwordEncoder.matches(password, user.get().getPassword())){
+            String token = jwtUtil.generateAccessToken(email);
+            String refreshToken = jwtUtil.generateRefreshToken();
+            userCache.put(token, refreshToken);
+            return token;
+        } else {
+            throw new Exception("Invalid Credentials");
         }
-        return validUser;
     }
 
-    public boolean checkLoggedIn(String email) {
-        email = email.toLowerCase();
-        return Boolean.TRUE.equals(userCache.getIfPresent(email));
+    public String updateToken(String token, String email) {
+        String refreshToken = userCache.getIfPresent(token);
+        if(refreshToken != null) {
+            userCache.invalidate(token);
+            String newToken = jwtUtil.generateAccessToken(email);
+            userCache.put(newToken, refreshToken);
+            return newToken;
+        } else {
+            return null;
+        }
+    }
+
+    public void logout(String token) {
+        userCache.invalidate(token);
     }
 }

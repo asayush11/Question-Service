@@ -5,13 +5,9 @@ import com.example.questions_service.Service.UserService;
 import com.example.questions_service.Utility.APIResponse;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
-import java.time.Duration;
 
 @RestController
 @RequestMapping("/users")
@@ -20,20 +16,18 @@ public class UserController {
     UserService userService;
 
     @PostMapping("/login")
-    public ResponseEntity<APIResponse<Boolean>>  authenticateUser(@Valid @RequestBody UserDTO user, HttpServletResponse response){
-        if(userService.login(user.getEmail(), user.getPassword())){
-            ResponseCookie emailCookie = ResponseCookie.from("email", user.getEmail())
-                    .httpOnly(true)
-                    .secure(true)
-                    .sameSite("None")
-                    .path("/")
-                    .maxAge(Duration.ofMinutes(10))
-                    .build();
-            response.setHeader(HttpHeaders.SET_COOKIE, emailCookie.toString());
-            return ResponseEntity.ok(APIResponse.success("Login successful", true));
-        } else {
+    public ResponseEntity<APIResponse<String>>  authenticateUser(@Valid @RequestBody UserDTO user, HttpServletResponse response){
+        try {
+            return ResponseEntity.ok().body(APIResponse.success("Login successful", userService.login(user.getEmail(), user.getPassword())));
+        } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(APIResponse.error("Login unsuccessful", "Invalid Credentials"));
         }
+    }
+
+    @PostMapping("/logout")
+    public ResponseEntity<APIResponse<String>>  logoutUser(@RequestParam String token){
+        userService.logout(token);
+        return ResponseEntity.ok().body(APIResponse.success("Logout successful","Logout successful"));
     }
 
     @PostMapping("/create")
