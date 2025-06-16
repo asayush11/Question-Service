@@ -36,6 +36,9 @@ public class QuestionController {
 
     @GetMapping("/retrieve")
     public ResponseEntity<APIResponse<List<Question>>> getQuestions(@RequestParam String category, @RequestParam int numberOfEasy, @RequestParam int numberOfMedium, @RequestParam int numberOfDifficult){
+        if(numberOfDifficult < 0 || numberOfEasy < 0 || numberOfMedium < 0){
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(APIResponse.error("Invalid number of question", "Invalid number of question"));
+        }
         try{
             return ResponseEntity.ok().body(APIResponse.success("Questions Fetched",questionService.getQuestions(category, numberOfEasy, numberOfMedium, numberOfDifficult)));
         } catch (Exception e){

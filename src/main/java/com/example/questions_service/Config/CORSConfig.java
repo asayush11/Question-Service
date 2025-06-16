@@ -10,8 +10,9 @@ public class CORSConfig implements WebMvcConfigurer {
         registry.addMapping("/**")
                 .allowedOrigins("http://localhost:5173",
                                 "https://quiz-ui-three.vercel.app")
-                .allowedMethods("*")
-                .allowedHeaders("*")
+                .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
+                .allowedHeaders("Authorization", "Content-Type", "Accept")
+                .exposedHeaders("X-New-Access-Token")
                 .allowCredentials(true);
     }
 }
