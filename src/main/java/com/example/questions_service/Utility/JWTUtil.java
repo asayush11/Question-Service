@@ -34,7 +34,7 @@ public class JWTUtil {
     }
 
     public String generateRefreshToken() {
-        var expirationTime = 86400000;
+        var expirationTime = 18000000;
         return Jwts.builder()
                 .setIssuedAt(new Date())
                 .setExpiration(new Date(System.currentTimeMillis() + expirationTime))
@@ -55,6 +55,18 @@ public class JWTUtil {
             return new TokenValidationResult(e.getClaims().getSubject(), true);
         } catch (Exception e) {
             throw new IllegalArgumentException("Invalid JWT token");
+        }
+    }
+
+    public String generateNewAccessToken(String refreshToken, String email) {
+        try {
+             Jwts.parserBuilder()
+                    .setSigningKey(key)
+                    .build()
+                    .parseClaimsJws(refreshToken);
+            return generateAccessToken(email);
+        } catch (Exception e) {
+            return null;
         }
     }
 }

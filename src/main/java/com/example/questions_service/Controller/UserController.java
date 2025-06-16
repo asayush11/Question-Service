@@ -1,4 +1,5 @@
 package com.example.questions_service.Controller;
+import com.example.questions_service.Utility.LoginValidationResult;
 import jakarta.servlet.http.HttpServletResponse;
 import com.example.questions_service.DTO.UserDTO;
 import com.example.questions_service.Service.UserService;
@@ -16,7 +17,7 @@ public class UserController {
     UserService userService;
 
     @PostMapping("/login")
-    public ResponseEntity<APIResponse<String>>  authenticateUser(@Valid @RequestBody UserDTO user, HttpServletResponse response){
+    public ResponseEntity<APIResponse<LoginValidationResult>>  authenticateUser(@Valid @RequestBody UserDTO user, HttpServletResponse response){
         try {
             return ResponseEntity.ok().body(APIResponse.success("Login successful", userService.login(user.getEmail(), user.getPassword())));
         } catch (Exception e) {

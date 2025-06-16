@@ -3,6 +3,7 @@ package com.example.questions_service.Service;
 import com.example.questions_service.Entity.User;
 import com.example.questions_service.Repository.UserRepository;
 import com.example.questions_service.Utility.JWTUtil;
+import com.example.questions_service.Utility.LoginValidationResult;
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
 import io.micrometer.core.instrument.MeterRegistry;
@@ -11,7 +12,6 @@ import jakarta.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
@@ -32,7 +32,7 @@ public class UserService {
     UserRepository userRepository;
 
     private final Cache<String, String> userCache = Caffeine.newBuilder()
-            .expireAfterWrite(5, TimeUnit.HOURS)
+            .expireAfterWrite(6, TimeUnit.HOURS)
             .recordStats()
             .build();
 
@@ -47,14 +47,14 @@ public class UserService {
         }
     }
 
-    public String login(String email, String password) throws Exception{
+    public LoginValidationResult login(String email, String password) throws Exception{
         email = email.toLowerCase();
         Optional<User> user = userRepository.findByEmailID(email);
         if(user.isPresent() && passwordEncoder.matches(password, user.get().getPassword())){
             String token = jwtUtil.generateAccessToken(email);
             String refreshToken = jwtUtil.generateRefreshToken();
             userCache.put(token, refreshToken);
-            return token;
+            return new LoginValidationResult(token, user.get().getUsername());
         } else {
             throw new Exception("Invalid Credentials");
         }
@@ -64,7 +64,8 @@ public class UserService {
         String refreshToken = userCache.getIfPresent(token);
         if(refreshToken != null) {
             userCache.invalidate(token);
-            String newToken = jwtUtil.generateAccessToken(email);
+            String newToken = jwtUtil.generateNewAccessToken(refreshToken, email);
+            if(token == null) return null;
             userCache.put(newToken, refreshToken);
             return newToken;
         } else {
