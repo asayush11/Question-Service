@@ -54,7 +54,7 @@ public class UserService {
             String token = jwtUtil.generateAccessToken(email);
             String refreshToken = jwtUtil.generateRefreshToken();
             userCache.put(token, refreshToken);
-            return new LoginValidationResult(token, user.get().getUsername());
+            return new LoginValidationResult(token, user.get().getUsername(), user.get().getQuizzesTaken(), user.get().getQuestionsContributed());
         } else {
             throw new Exception("Invalid Credentials");
         }

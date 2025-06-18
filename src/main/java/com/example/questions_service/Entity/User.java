@@ -13,27 +13,35 @@ public class User {
     @Column(name = "email_id", unique = true)
     private String emailID;
     private String password;
+    private Integer quizzesTaken;
+    private Integer questionsContributed;
 
     public User() {
     }
 
-    public User(Integer userId, String username, String emailID, String password) {
+    public User(Integer userId, String username, String emailID, String password, Integer questionsContributed, Integer quizzesTaken) {
         this.userId = userId;
         this.username = username;
         this.emailID = emailID;
         this.password = password;
+        this.quizzesTaken = quizzesTaken;
+        this.questionsContributed = questionsContributed;
     }
 
     public User(UserDTO userDTO){
         this.username = userDTO.getUsername();
         this.emailID = userDTO.getEmail();
         this.password = userDTO.getPassword();
+        this.quizzesTaken = 0;
+        this.questionsContributed = 0;
     }
 
     public User(String username, String emailID, String password) {
         this.username = username;
         this.emailID = emailID;
         this.password = password;
+        this.quizzesTaken = 0;
+        this.questionsContributed = 0;
     }
 
     public Integer getUserId() {
@@ -50,5 +58,21 @@ public class User {
 
     public String getPassword() {
         return password;
+    }
+
+    public Integer getQuizzesTaken() {
+        return quizzesTaken;
+    }
+
+    public void setQuizzesTaken(Integer quizzesTaken) {
+        this.quizzesTaken = quizzesTaken;
+    }
+
+    public Integer getQuestionsContributed() {
+        return questionsContributed;
+    }
+
+    public void setQuestionsContributed(Integer numberOfQuestions) {
+        this.questionsContributed = numberOfQuestions;
     }
 }

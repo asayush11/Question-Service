@@ -1,0 +1,3 @@
+ALTER TABLE users
+ADD COLUMN quizzes_taken INT NOT NULL DEFAULT 0,
+ADD COLUMN questions_contributed INT NOT NULL DEFAULT 0;

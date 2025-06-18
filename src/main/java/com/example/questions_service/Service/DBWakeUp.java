@@ -12,6 +12,6 @@ public class DBWakeUp {
 
     @Scheduled(fixedDelay = 270000)
     public void warmUpDb() {
-        //questionRepository.wakeDbLightly();
+        questionRepository.wakeDbLightly();
     }
 }

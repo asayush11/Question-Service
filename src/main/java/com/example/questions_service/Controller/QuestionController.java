@@ -21,13 +21,13 @@ public class QuestionController {
     QuestionService questionService;
 
     @PostMapping("/create")
-    public ResponseEntity<APIResponse<String>> addQuestion(@Valid @RequestBody QuestionDTO question){
+    public ResponseEntity<APIResponse<String>> addQuestion(@RequestHeader("Authorization") String authHeader, @Valid @RequestBody QuestionDTO question){
        if(!Objects.equals(question.getDifficulty(), "HARD") || !Objects.equals(question.getDifficulty(), "EASY") || !Objects.equals(question.getDifficulty(), "MEDIUM")){
             ResponseEntity.status(HttpStatus.BAD_REQUEST).body(APIResponse.error("Failed to add question","Enter Valid Difficulty"));
         }
         try{
             Question newQuestion = new Question(question);
-            questionService.createQuestion(newQuestion);
+            questionService.createQuestion(newQuestion, authHeader);
             return ResponseEntity.status(HttpStatus.CREATED).body(APIResponse.success("Question added successfully", newQuestion.getQuestion()));
         } catch (Exception e){
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(APIResponse.error("Failed to add question",e.getMessage()));
@@ -35,12 +35,12 @@ public class QuestionController {
     }
 
     @GetMapping("/retrieve")
-    public ResponseEntity<APIResponse<List<Question>>> getQuestions(@RequestParam String category, @RequestParam int numberOfEasy, @RequestParam int numberOfMedium, @RequestParam int numberOfDifficult){
+    public ResponseEntity<APIResponse<List<Question>>> getQuestions(@RequestHeader("Authorization") String authHeader, @RequestParam String category, @RequestParam int numberOfEasy, @RequestParam int numberOfMedium, @RequestParam int numberOfDifficult){
         if(numberOfDifficult < 0 || numberOfEasy < 0 || numberOfMedium < 0){
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(APIResponse.error("Invalid number of question", "Invalid number of question"));
         }
         try{
-            return ResponseEntity.ok().body(APIResponse.success("Questions Fetched",questionService.getQuestions(category, numberOfEasy, numberOfMedium, numberOfDifficult)));
+            return ResponseEntity.ok().body(APIResponse.success("Questions Fetched",questionService.getQuestions(category, numberOfEasy, numberOfMedium, numberOfDifficult, authHeader)));
         } catch (Exception e){
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(APIResponse.error("Error fetching question", e.getMessage()));
         }

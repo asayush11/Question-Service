@@ -16,6 +16,8 @@ public class QuestionService {
 
     @Autowired
     MeterRegistry meterRegistry;
+    @Autowired
+    UserStats userStats;
 
     @PostConstruct
     public void bindCaffeineCacheMetrics() {
@@ -32,7 +34,7 @@ public class QuestionService {
             .recordStats()
             .build();
 
-    public List<Question> getQuestions(String category, int numberOfEasy, int numberOfMedium, int numberOfDifficult) {
+    public List<Question> getQuestions(String category, int numberOfEasy, int numberOfMedium, int numberOfDifficult, String authHeader) {
         List<Question> result = new ArrayList<>();
         Map<String, Integer> difficultyCount = Map.of(
                 "EASY", numberOfEasy,
@@ -47,6 +49,7 @@ public class QuestionService {
             Collections.shuffle(questions);
             result.addAll(questions.subList(0, Math.min(count, questions.size())));
         }
+        userStats.updateStats(authHeader,1,0);
         return result;
     }
 
@@ -68,10 +71,11 @@ public class QuestionService {
         return topic.toUpperCase().trim() + "_" + difficulty.toUpperCase().trim();
     }
 
-    public void createQuestion(Question question) {
+    public void createQuestion(Question question, String authHeader) {
         try {
             questionRepository.save(question);
             invalidateCache(question.getCategory(), question.getDifficulty());
+            userStats.updateStats(authHeader,0,1);
         } catch (Exception e) {
             throw new RuntimeException("Failed to add question", e);
         }
