@@ -4,6 +4,7 @@ import com.example.questions_service.DTO.AnswerResponseDTO;
 import com.example.questions_service.DTO.QuestionRequestDTO;
 import com.example.questions_service.DTO.QuizDTO;
 import com.example.questions_service.Entity.Question;
+import com.example.questions_service.Exception.UserNotAdminException;
 import com.example.questions_service.Service.QuestionService;
 import com.example.questions_service.Utility.APIResponse;
 import jakarta.validation.Valid;
@@ -31,6 +32,8 @@ public class QuestionController {
             Question newQuestion = new Question(question);
             questionService.createQuestion(newQuestion, authHeader);
             return ResponseEntity.status(HttpStatus.CREATED).body(APIResponse.success("Question added successfully", newQuestion.getQuestion()));
+        } catch (UserNotAdminException e){
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(APIResponse.error("You're not allowed to perform this operation",e.getMessage()));
         } catch (Exception e){
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(APIResponse.error("Failed to add question",e.getMessage()));
         }

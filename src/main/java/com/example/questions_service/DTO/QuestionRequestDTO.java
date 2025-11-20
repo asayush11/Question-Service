@@ -19,13 +19,8 @@ public class QuestionRequestDTO {
     @NotNull(message = "Enter valid option 2")
     @Size(min = 1)
     private String option2;
-    @NotNull(message = "Enter valid option 3")
-    @Size(min = 1)
     private String option3;
-    @NotNull(message = "Enter valid option 4")
-    @Size(min = 1)
     private String option4;
-
     private String solution;
 
     @NotNull(message = "Enter valid type")

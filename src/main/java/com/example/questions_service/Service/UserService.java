@@ -10,6 +10,7 @@ import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.binder.cache.CaffeineCacheMetrics;
 import jakarta.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import java.util.Optional;
@@ -23,6 +24,8 @@ public class UserService {
     PasswordEncoder passwordEncoder;
     @Autowired
     JWTUtil jwtUtil;
+    @Value("${refreshTokenTimeHour}")
+    private int refreshTokenTime;
 
     @PostConstruct
     public void bindCaffeineCacheMetrics() {
@@ -32,7 +35,7 @@ public class UserService {
     UserRepository userRepository;
 
     private final Cache<String, String> userCache = Caffeine.newBuilder()
-            .expireAfterWrite(6, TimeUnit.HOURS)
+            .expireAfterWrite(refreshTokenTime, TimeUnit.HOURS)
             .recordStats()
             .build();
 
@@ -47,16 +50,16 @@ public class UserService {
         }
     }
 
-    public LoginValidationResult login(String email, String password) throws Exception{
+    public LoginValidationResult login(String email, String password) throws IllegalArgumentException{
         email = email.toLowerCase();
         Optional<User> user = userRepository.findByEmailID(email);
         if(user.isPresent() && passwordEncoder.matches(password, user.get().getPassword())){
             String token = jwtUtil.generateAccessToken(email);
             String refreshToken = jwtUtil.generateRefreshToken();
             userCache.put(token, refreshToken);
-            return new LoginValidationResult(token, user.get().getUsername(), user.get().getQuizzesTaken(), user.get().getQuestionsContributed());
+            return new LoginValidationResult(token, user.get().getUsername(), user.get().getQuizzesTaken(), user.get().getAdmin());
         } else {
-            throw new Exception("Invalid Credentials");
+            throw new IllegalArgumentException("Invalid Credentials");
         }
     }
 
@@ -75,5 +78,22 @@ public class UserService {
 
     public void logout(String token) {
         userCache.invalidate(token);
+    }
+
+    public boolean changePassword(String email, String password) throws IllegalArgumentException{
+        email = email.toLowerCase();
+        Optional<User> user = userRepository.findByEmailID(email);
+        if(user.isPresent()){
+            User updatedUser = user.get();
+            updatedUser.setPassword(passwordEncoder.encode(password));
+            userRepository.save(updatedUser);
+            return true;
+        } else {
+            throw new IllegalArgumentException("User doesn't exist");
+        }
+    }
+
+    public void deleteAccount(String email) {
+        userRepository.deleteByEmail(email);
     }
 }

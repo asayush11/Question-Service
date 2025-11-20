@@ -3,13 +3,16 @@ import com.example.questions_service.DTO.AnswerResponseDTO;
 import com.example.questions_service.DTO.QuestionResponseDTO;
 import com.example.questions_service.DTO.QuizDTO;
 import com.example.questions_service.Entity.Question;
+import com.example.questions_service.Exception.UserNotAdminException;
 import com.example.questions_service.Repository.QuestionRepository;
+import com.example.questions_service.Utility.UserHelper;
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.binder.cache.CaffeineCacheMetrics;
 import jakarta.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
@@ -20,7 +23,7 @@ public class QuestionService {
     @Autowired
     MeterRegistry meterRegistry;
     @Autowired
-    UserStats userStats;
+    UserHelper userHelper;
 
     @PostConstruct
     public void bindCaffeineCacheMetrics() {
@@ -29,16 +32,21 @@ public class QuestionService {
     @Autowired
     QuestionRepository questionRepository;
 
-    private static final int MAX_CACHE_SIZE = 15;
+    @Value("${questionCacheSize}")
+    private int questionCacheSize;
+    @Value("${answersTimeHour}")
+    private int answersTimeHour;
+    @Value("${questionCacheHour}")
+    private int questionCacheHour;
 
     private final Cache<String, List<Question>> questionCache = Caffeine.newBuilder()
-            .maximumSize(MAX_CACHE_SIZE)
-            .expireAfterAccess(24, TimeUnit.HOURS)
+            .maximumSize(questionCacheSize)
+            .expireAfterAccess(questionCacheHour, TimeUnit.HOURS)
             .recordStats()
             .build();
 
     private final Cache<String, List<AnswerResponseDTO>> quizAnswers = Caffeine.newBuilder()
-            .expireAfterAccess(6, TimeUnit.HOURS)
+            .expireAfterAccess(answersTimeHour, TimeUnit.HOURS)
             .recordStats()
             .build();
 
@@ -57,7 +65,7 @@ public class QuestionService {
             Collections.shuffle(questions);
             result.addAll(questions.subList(0, Math.min(count, questions.size())));
         }
-        userStats.updateStats(authHeader,1,0);
+        userHelper.updateStats(authHeader,1);
 
         String quizID = category + quizAnswers.estimatedSize() + " " + numberOfDifficult + " " + numberOfMedium + " " + numberOfEasy;
         List<AnswerResponseDTO> answers = new ArrayList<>();
@@ -89,13 +97,16 @@ public class QuestionService {
         return topic.toUpperCase().trim() + "_" + difficulty.toUpperCase().trim();
     }
 
-    public void createQuestion(Question question, String authHeader) {
+    public void createQuestion(Question question, String authHeader) throws Exception{
         try {
-            questionRepository.save(question);
-            invalidateCache(question.getCategory(), question.getDifficulty());
-            userStats.updateStats(authHeader,0,1);
+            if(userHelper.validateAdmin(authHeader)){
+                questionRepository.save(question);
+                invalidateCache(question.getCategory(), question.getDifficulty());
+            } else {
+                throw new UserNotAdminException("You're not allowed to perform this operation");
+            }
         } catch (Exception e) {
-            throw new RuntimeException("Failed to add question", e);
+            throw new Exception("Failed to add question", e);
         }
     }
 

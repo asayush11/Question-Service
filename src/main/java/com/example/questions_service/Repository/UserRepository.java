@@ -15,10 +15,12 @@ public interface UserRepository extends JpaRepository<User, Integer> {
     Optional<User> findByEmailID(String emailID);
     @Modifying
     @Transactional
-    @Query("UPDATE User u SET u.quizzesTaken = u.quizzesTaken + :quizInc, " +
-            "u.questionsContributed = u.questionsContributed + :questionInc " +
+    @Query("DELETE FROM User u WHERE u.emailID = :email")
+    int deleteByEmail(@Param("email") String email);
+    @Modifying
+    @Transactional
+    @Query("UPDATE User u SET u.quizzesTaken = u.quizzesTaken + :quizInc "  +
             "WHERE u.emailID = :email")
     int incrementStatsByEmail(@Param("email") String email,
-                              @Param("quizInc") int quizInc,
-                              @Param("questionInc") int questionInc);
+                              @Param("quizInc") int quizInc);
 }

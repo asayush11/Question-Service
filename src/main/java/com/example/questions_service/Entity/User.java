@@ -15,18 +15,18 @@ public class User {
     private String emailID;
     private String password;
     private Integer quizzesTaken;
-    private Integer questionsContributed;
+    private Boolean isAdmin;
 
     public User() {
     }
 
-    public User(Long userId, String username, String emailID, String password, Integer questionsContributed, Integer quizzesTaken) {
+    public User(Long userId, String username, String emailID, String password, Integer quizzesTaken, Boolean isAdmin) {
         this.userId = userId;
         this.username = username;
         this.emailID = emailID;
         this.password = password;
         this.quizzesTaken = quizzesTaken;
-        this.questionsContributed = questionsContributed;
+        this.isAdmin = isAdmin;
     }
 
     public User(UserDTO userDTO){
@@ -34,7 +34,7 @@ public class User {
         this.emailID = userDTO.getEmail();
         this.password = userDTO.getPassword();
         this.quizzesTaken = 0;
-        this.questionsContributed = 0;
+        this.isAdmin = false;
     }
 
     public User(String username, String emailID, String password) {
@@ -42,7 +42,7 @@ public class User {
         this.emailID = emailID;
         this.password = password;
         this.quizzesTaken = 0;
-        this.questionsContributed = 0;
+        this.isAdmin = false;
     }
 
     public Long getUserId() {
@@ -69,11 +69,19 @@ public class User {
         this.quizzesTaken = quizzesTaken;
     }
 
-    public Integer getQuestionsContributed() {
-        return questionsContributed;
+    public Boolean getAdmin() {
+        return isAdmin;
     }
 
-    public void setQuestionsContributed(Integer numberOfQuestions) {
-        this.questionsContributed = numberOfQuestions;
+    public void setAdmin(Boolean admin) {
+        isAdmin = admin;
+    }
+
+    public void setUsername(String username) {
+        this.username = username;
+    }
+
+    public void setPassword(String password) {
+        this.password = password;
     }
 }
