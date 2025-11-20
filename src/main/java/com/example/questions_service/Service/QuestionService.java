@@ -28,6 +28,7 @@ public class QuestionService {
     @PostConstruct
     public void bindCaffeineCacheMetrics() {
         CaffeineCacheMetrics.monitor(meterRegistry, questionCache, "questionCache");
+        CaffeineCacheMetrics.monitor(meterRegistry, quizAnswers, "quizAnswers");
     }
     @Autowired
     QuestionRepository questionRepository;
