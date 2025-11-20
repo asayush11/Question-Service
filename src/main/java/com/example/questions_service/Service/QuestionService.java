@@ -1,4 +1,7 @@
 package com.example.questions_service.Service;
+import com.example.questions_service.DTO.AnswerResponseDTO;
+import com.example.questions_service.DTO.QuestionResponseDTO;
+import com.example.questions_service.DTO.QuizDTO;
 import com.example.questions_service.Entity.Question;
 import com.example.questions_service.Repository.QuestionRepository;
 import com.github.benmanes.caffeine.cache.Cache;
@@ -34,7 +37,12 @@ public class QuestionService {
             .recordStats()
             .build();
 
-    public List<Question> getQuestions(String category, int numberOfEasy, int numberOfMedium, int numberOfDifficult, String authHeader) {
+    private final Cache<String, List<AnswerResponseDTO>> quizAnswers = Caffeine.newBuilder()
+            .expireAfterAccess(6, TimeUnit.HOURS)
+            .recordStats()
+            .build();
+
+    public QuizDTO getQuestions(String category, int numberOfEasy, int numberOfMedium, int numberOfDifficult, String authHeader) {
         List<Question> result = new ArrayList<>();
         Map<String, Integer> difficultyCount = Map.of(
                 "EASY", numberOfEasy,
@@ -50,7 +58,17 @@ public class QuestionService {
             result.addAll(questions.subList(0, Math.min(count, questions.size())));
         }
         userStats.updateStats(authHeader,1,0);
-        return result;
+
+        String quizID = category + quizAnswers.estimatedSize() + " " + numberOfDifficult + " " + numberOfMedium + " " + numberOfEasy;
+        List<AnswerResponseDTO> answers = new ArrayList<>();
+        List<QuestionResponseDTO> questions = new ArrayList<>();
+        for(Question q : result){
+            answers.add(new AnswerResponseDTO(q.getAnswer(), q.getSolution()));
+            questions.add(new QuestionResponseDTO(q.getQuestion(), q.getCategory(), q.getDifficulty(), q.getOption1(), q.getOption2(), q.getOption3(), q.getOption4(), q.getType()));
+        }
+        quizAnswers.put(quizID, answers);
+
+        return new QuizDTO(questions, quizID);
     }
 
     private List<Question> getAllQuestions(String topic, String difficulty) {
@@ -84,5 +102,11 @@ public class QuestionService {
     private void invalidateCache(String topic, String difficulty) {
         String key = getCacheKey(topic, difficulty);
         questionCache.invalidate(key);
+    }
+
+    public List<AnswerResponseDTO> getAnswers(String quizId){
+        var answers = quizAnswers.get(quizId, K -> null);
+        quizAnswers.invalidate(quizId);
+        return answers;
     }
 }

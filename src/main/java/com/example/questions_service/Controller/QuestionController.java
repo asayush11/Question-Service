@@ -1,6 +1,8 @@
 package com.example.questions_service.Controller;
 
-import com.example.questions_service.DTO.QuestionDTO;
+import com.example.questions_service.DTO.AnswerResponseDTO;
+import com.example.questions_service.DTO.QuestionRequestDTO;
+import com.example.questions_service.DTO.QuizDTO;
 import com.example.questions_service.Entity.Question;
 import com.example.questions_service.Service.QuestionService;
 import com.example.questions_service.Utility.APIResponse;
@@ -21,7 +23,7 @@ public class QuestionController {
     QuestionService questionService;
 
     @PostMapping("/create")
-    public ResponseEntity<APIResponse<String>> addQuestion(@RequestHeader("Authorization") String authHeader, @Valid @RequestBody QuestionDTO question){
+    public ResponseEntity<APIResponse<String>> addQuestion(@RequestHeader("Authorization") String authHeader, @Valid @RequestBody QuestionRequestDTO question){
        if(!Objects.equals(question.getDifficulty(), "HARD") || !Objects.equals(question.getDifficulty(), "EASY") || !Objects.equals(question.getDifficulty(), "MEDIUM")){
             ResponseEntity.status(HttpStatus.BAD_REQUEST).body(APIResponse.error("Failed to add question","Enter Valid Difficulty"));
         }
@@ -34,8 +36,8 @@ public class QuestionController {
         }
     }
 
-    @GetMapping("/retrieve")
-    public ResponseEntity<APIResponse<List<Question>>> getQuestions(@RequestHeader("Authorization") String authHeader, @RequestParam String category, @RequestParam int numberOfEasy, @RequestParam int numberOfMedium, @RequestParam int numberOfDifficult){
+    @GetMapping("/questions")
+    public ResponseEntity<APIResponse<QuizDTO>> getQuestions(@RequestHeader("Authorization") String authHeader, @RequestParam String category, @RequestParam int numberOfEasy, @RequestParam int numberOfMedium, @RequestParam int numberOfDifficult){
         if(numberOfDifficult < 0 || numberOfEasy < 0 || numberOfMedium < 0){
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(APIResponse.error("Invalid number of question", "Invalid number of question"));
         }
@@ -43,6 +45,18 @@ public class QuestionController {
             return ResponseEntity.ok().body(APIResponse.success("Questions Fetched",questionService.getQuestions(category, numberOfEasy, numberOfMedium, numberOfDifficult, authHeader)));
         } catch (Exception e){
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(APIResponse.error("Error fetching question", e.getMessage()));
+        }
+    }
+
+    @GetMapping("/answers")
+    public ResponseEntity<APIResponse<List<AnswerResponseDTO>>> getAnswers(@RequestHeader("Authorization") String authHeader, @RequestParam String quizId){
+        if(quizId == null || quizId.isEmpty()){
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(APIResponse.error("Invalid quizID", "Invalid quizID"));
+        }
+        try{
+            return ResponseEntity.ok().body(APIResponse.success("Questions Fetched",questionService.getAnswers(quizId)));
+        } catch (Exception e){
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(APIResponse.error("Error fetching answers", e.getMessage()));
         }
     }
 }

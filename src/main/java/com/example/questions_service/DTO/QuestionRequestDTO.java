@@ -3,7 +3,9 @@ package com.example.questions_service.DTO;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 
-public class QuestionDTO {
+import java.util.List;
+
+public class QuestionRequestDTO {
     @NotNull(message = "Enter valid question")
     @Size(min = 1)
     private String question;
@@ -26,18 +28,15 @@ public class QuestionDTO {
 
     private String solution;
 
-    public QuestionDTO() {
-    }
+    @NotNull(message = "Enter valid type")
+    @Size(min = 1)
+    private String type;
 
-    public QuestionDTO(String question, String category, String difficulty, String option1, String option2, String option3, String option4, String solution) {
-        this.question = question;
-        this.category = category;
-        this.difficulty = difficulty;
-        this.option1 = option1;
-        this.option2 = option2;
-        this.option3 = option3;
-        this.option4 = option4;
-        this.solution = solution;
+    @NotNull(message = "Enter answers")
+    @Size(min = 1)
+    private List<String> answer;
+
+    public QuestionRequestDTO() {
     }
 
     public String getQuestion() {
@@ -69,5 +68,26 @@ public class QuestionDTO {
     }
     public String getSolution() {
         return solution;
+    }
+
+    public QuestionRequestDTO(String question, String category, String difficulty, String option1, String option2, String option3, String option4, String solution, String type, List<String> answer) {
+        this.question = question;
+        this.category = category;
+        this.difficulty = difficulty;
+        this.option1 = option1;
+        this.option2 = option2;
+        this.option3 = option3;
+        this.option4 = option4;
+        this.solution = solution;
+        this.type = type;
+        this.answer = answer;
+    }
+
+    public String getType() {
+        return type;
+    }
+
+    public List<String> getAnswer() {
+        return answer;
     }
 }
