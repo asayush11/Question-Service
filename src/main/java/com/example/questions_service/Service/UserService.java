@@ -1,9 +1,12 @@
 package com.example.questions_service.Service;
 
+import com.example.questions_service.Cache.UserTokenCache;
 import com.example.questions_service.Entity.User;
+import com.example.questions_service.Exception.InvalidUserException;
 import com.example.questions_service.Repository.UserRepository;
 import com.example.questions_service.Utility.JWTUtil;
 import com.example.questions_service.Utility.LoginValidationResult;
+import com.example.questions_service.Utility.UserHelper;
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
 import io.micrometer.core.instrument.MeterRegistry;
@@ -19,25 +22,13 @@ import java.util.concurrent.TimeUnit;
 @Service
 public class UserService {
     @Autowired
-    MeterRegistry meterRegistry;
-    @Autowired
     PasswordEncoder passwordEncoder;
     @Autowired
-    JWTUtil jwtUtil;
-    @Value("${refreshTokenTimeHour}")
-    private int refreshTokenTime;
-
-    @PostConstruct
-    public void bindCaffeineCacheMetrics() {
-        CaffeineCacheMetrics.monitor(meterRegistry, userCache, "userCache");
-    }
-    @Autowired
     UserRepository userRepository;
-
-    private final Cache<String, String> userCache = Caffeine.newBuilder()
-            .expireAfterWrite(refreshTokenTime, TimeUnit.HOURS)
-            .recordStats()
-            .build();
+    @Autowired
+    UserHelper userHelper;
+    @Autowired
+    UserTokenCache userTokenCache;
 
     public boolean createUser(String username, String email, String password) {
         email = email.toLowerCase();
@@ -50,37 +41,24 @@ public class UserService {
         }
     }
 
-    public LoginValidationResult login(String email, String password) throws IllegalArgumentException{
+    public LoginValidationResult login(String email, String password) throws InvalidUserException{
         email = email.toLowerCase();
         Optional<User> user = userRepository.findByEmailID(email);
         if(user.isPresent() && passwordEncoder.matches(password, user.get().getPassword())){
-            String token = jwtUtil.generateAccessToken(email);
-            String refreshToken = jwtUtil.generateRefreshToken();
-            userCache.put(token, refreshToken);
+            String token = userHelper.getAccessToken(email);
+            String refreshToken = userHelper.getRefreshToken();
+            userTokenCache.put(token, refreshToken);
             return new LoginValidationResult(token, user.get().getUsername(), user.get().getQuizzesTaken(), user.get().getAdmin());
         } else {
-            throw new IllegalArgumentException("Invalid Credentials");
-        }
-    }
-
-    public String updateToken(String token, String email) {
-        String refreshToken = userCache.getIfPresent(token);
-        if(refreshToken != null) {
-            userCache.invalidate(token);
-            String newToken = jwtUtil.generateNewAccessToken(refreshToken, email);
-            if(token == null) return null;
-            userCache.put(newToken, refreshToken);
-            return newToken;
-        } else {
-            return null;
+            throw new InvalidUserException("Invalid Credentials");
         }
     }
 
     public void logout(String token) {
-        userCache.invalidate(token);
+        userTokenCache.invalidateKey(token);
     }
 
-    public boolean changePassword(String email, String password) throws IllegalArgumentException{
+    public boolean changePassword(String email, String password) throws InvalidUserException{
         email = email.toLowerCase();
         Optional<User> user = userRepository.findByEmailID(email);
         if(user.isPresent()){
@@ -89,7 +67,7 @@ public class UserService {
             userRepository.save(updatedUser);
             return true;
         } else {
-            throw new IllegalArgumentException("User doesn't exist");
+            throw new InvalidUserException("User doesn't exist");
         }
     }
 

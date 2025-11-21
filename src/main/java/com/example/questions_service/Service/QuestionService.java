@@ -1,124 +1,27 @@
 package com.example.questions_service.Service;
-import com.example.questions_service.DTO.AnswerResponseDTO;
-import com.example.questions_service.DTO.QuestionResponseDTO;
-import com.example.questions_service.DTO.QuizDTO;
+
+import com.example.questions_service.Cache.QuestionsCache;
 import com.example.questions_service.Entity.Question;
 import com.example.questions_service.Exception.UserNotAdminException;
 import com.example.questions_service.Repository.QuestionRepository;
 import com.example.questions_service.Utility.UserHelper;
-import com.github.benmanes.caffeine.cache.Cache;
-import com.github.benmanes.caffeine.cache.Caffeine;
-import io.micrometer.core.instrument.MeterRegistry;
-import io.micrometer.core.instrument.binder.cache.CaffeineCacheMetrics;
-import jakarta.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
-import java.util.*;
-import java.util.concurrent.TimeUnit;
 
 @Service
 public class QuestionService {
-
-    @Autowired
-    MeterRegistry meterRegistry;
-    @Autowired
-    UserHelper userHelper;
-
-    @PostConstruct
-    public void bindCaffeineCacheMetrics() {
-        CaffeineCacheMetrics.monitor(meterRegistry, questionCache, "questionCache");
-        CaffeineCacheMetrics.monitor(meterRegistry, quizAnswers, "quizAnswers");
-    }
     @Autowired
     QuestionRepository questionRepository;
-
-    @Value("${questionCacheSize}")
-    private int questionCacheSize;
-    @Value("${answersTimeHour}")
-    private int answersTimeHour;
-    @Value("${questionCacheHour}")
-    private int questionCacheHour;
-
-    private final Cache<String, List<Question>> questionCache = Caffeine.newBuilder()
-            .maximumSize(questionCacheSize)
-            .expireAfterAccess(questionCacheHour, TimeUnit.HOURS)
-            .recordStats()
-            .build();
-
-    private final Cache<String, List<AnswerResponseDTO>> quizAnswers = Caffeine.newBuilder()
-            .expireAfterAccess(answersTimeHour, TimeUnit.HOURS)
-            .recordStats()
-            .build();
-
-    public QuizDTO getQuestions(String category, int numberOfEasy, int numberOfMedium, int numberOfDifficult, String authHeader) {
-        List<Question> result = new ArrayList<>();
-        Map<String, Integer> difficultyCount = Map.of(
-                "EASY", numberOfEasy,
-                "MEDIUM", numberOfMedium,
-                "HARD", numberOfDifficult
-        );
-
-        for (Map.Entry<String, Integer> entry : difficultyCount.entrySet()) {
-            String difficulty = entry.getKey();
-            int count = entry.getValue();
-            List<Question> questions = getAllQuestions(category, difficulty);
-            Collections.shuffle(questions);
-            result.addAll(questions.subList(0, Math.min(count, questions.size())));
-        }
-        userHelper.updateStats(authHeader,1);
-
-        String quizID = category + quizAnswers.estimatedSize() + " " + numberOfDifficult + " " + numberOfMedium + " " + numberOfEasy;
-        List<AnswerResponseDTO> answers = new ArrayList<>();
-        List<QuestionResponseDTO> questions = new ArrayList<>();
-        for(Question q : result){
-            answers.add(new AnswerResponseDTO(q.getAnswer(), q.getSolution()));
-            questions.add(new QuestionResponseDTO(q.getQuestion(), q.getCategory(), q.getDifficulty(), q.getOption1(), q.getOption2(), q.getOption3(), q.getOption4(), q.getType()));
-        }
-        quizAnswers.put(quizID, answers);
-
-        return new QuizDTO(questions, quizID);
-    }
-
-    private List<Question> getAllQuestions(String topic, String difficulty) {
-        String key = getCacheKey(topic, difficulty);
-        return questionCache.get(key, k -> fetchQuestionsFromDatabase(topic, difficulty));
-    }
-
-    private List<Question> fetchQuestionsFromDatabase(String topic, String difficulty) {
-        try {
-            List<Question> questions = questionRepository.findByCategoryAndDifficulty(topic, difficulty);
-            return questions != null ? questions : new ArrayList<>();
-        } catch (Exception e) {
-            return new ArrayList<>();
-        }
-    }
-
-    private String getCacheKey(String topic, String difficulty) {
-        return topic.toUpperCase().trim() + "_" + difficulty.toUpperCase().trim();
-    }
-
+    @Autowired
+    UserHelper userHelper;
+    @Autowired
+    QuestionsCache questionsCache;
     public void createQuestion(Question question, String authHeader) throws Exception{
         try {
-            if(userHelper.validateAdmin(authHeader)){
-                questionRepository.save(question);
-                invalidateCache(question.getCategory(), question.getDifficulty());
-            } else {
-                throw new UserNotAdminException("You're not allowed to perform this operation");
-            }
+            questionRepository.save(question);
+            questionsCache.invalidateKey(question.getCategory(), question.getDifficulty());
         } catch (Exception e) {
             throw new Exception("Failed to add question", e);
         }
-    }
-
-    private void invalidateCache(String topic, String difficulty) {
-        String key = getCacheKey(topic, difficulty);
-        questionCache.invalidate(key);
-    }
-
-    public List<AnswerResponseDTO> getAnswers(String quizId){
-        var answers = quizAnswers.get(quizId, K -> null);
-        quizAnswers.invalidate(quizId);
-        return answers;
     }
 }

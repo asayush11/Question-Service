@@ -21,7 +21,7 @@ public class JWTAuthFilter implements Filter {
     @Autowired
     private JWTUtil jwtUtil;
     @Autowired
-    private UserService userService;
+    private UserHelper userHelper;
 
     @Override
     public void doFilter(ServletRequest req, ServletResponse res, FilterChain chain)
@@ -39,7 +39,7 @@ public class JWTAuthFilter implements Filter {
         }
 
         // Secure endpoints
-        if (path.startsWith("/questions")) {
+        if (path.startsWith("/quiz") || path.startsWith("/question")) {
             String authHeader = request.getHeader("Authorization");
 
             if (authHeader == null || !authHeader.toLowerCase().startsWith("bearer ")) {
@@ -52,20 +52,33 @@ public class JWTAuthFilter implements Filter {
             try {
                 var result = jwtUtil.validateToken(token);
                 if (result.isExpired()) {
-                    var newToken = userService.updateToken(token, result.email());
+                    var newToken = userHelper.updateToken(token, result.email());
                     if (newToken != null) {
                         // Send the new token in response header
                         response.setHeader("X-New-Access-Token", newToken);
+                        if(path.startsWith("/question")) {
+                            boolean isAdmin = userHelper.validateAdmin(token);
+                            if (!isAdmin) {
+                                response.sendError(HttpServletResponse.SC_FORBIDDEN, "You're not allowed to perform this operation");
+                                return;
+                            }
+                        }
                         chain.doFilter(req, res);
                     } else {
                         response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Session expired. Please login again.");
                     }
-                    return;
                 } else {
                     // Token valid
+                    if(path.startsWith("/question")) {
+                        boolean isAdmin = userHelper.validateAdmin(token);
+                        if (!isAdmin) {
+                            response.sendError(HttpServletResponse.SC_FORBIDDEN, "You're not allowed to perform this operation");
+                            return;
+                        }
+                    }
                     chain.doFilter(req, res);
-                    return;
                 }
+                return;
             } catch (Exception e) {
                 response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Please login to proceed");
                 return;

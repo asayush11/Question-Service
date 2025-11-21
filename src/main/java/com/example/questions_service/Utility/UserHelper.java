@@ -1,5 +1,6 @@
 package com.example.questions_service.Utility;
 
+import com.example.questions_service.Cache.UserTokenCache;
 import com.example.questions_service.Entity.User;
 import com.example.questions_service.Repository.UserRepository;
 import com.example.questions_service.Utility.JWTUtil;
@@ -16,6 +17,8 @@ public class UserHelper {
     UserRepository userRepository;
     @Autowired
     JWTUtil jwtUtil;
+    @Autowired
+    UserTokenCache userTokenCache;
     @Async
     public void updateStats(String authHeader, int quizInc) {
         try {
@@ -27,9 +30,8 @@ public class UserHelper {
         }
     }
 
-    public boolean validateAdmin(String authHeader) throws Exception{
+    public boolean validateAdmin(String token) throws Exception{
         try {
-            String token = authHeader.replace("Bearer","");
             String email = jwtUtil.validateToken(token).email();
             Optional<User> user = userRepository.findByEmailID(email);
             return user.isPresent() && user.get().getAdmin();
@@ -38,4 +40,24 @@ public class UserHelper {
         }
     }
 
+    public String getAccessToken(String email) {
+        return jwtUtil.generateAccessToken(email);
+    }
+
+    public String getRefreshToken() {
+        return jwtUtil.generateRefreshToken();
+    }
+
+    public String updateToken(String token, String email) {
+        String refreshToken = userTokenCache.get(token);
+        if(refreshToken != null) {
+            userTokenCache.invalidateKey(token);
+            String newToken = jwtUtil.generateNewAccessToken(refreshToken, email);
+            if(token == null) return null;
+            userTokenCache.put(newToken, refreshToken);
+            return newToken;
+        } else {
+            return null;
+        }
+    }
 }

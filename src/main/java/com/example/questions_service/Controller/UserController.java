@@ -1,4 +1,5 @@
 package com.example.questions_service.Controller;
+import com.example.questions_service.Exception.InvalidUserException;
 import com.example.questions_service.Utility.LoginValidationResult;
 import jakarta.servlet.http.HttpServletResponse;
 import com.example.questions_service.DTO.UserDTO;
@@ -20,7 +21,7 @@ public class UserController {
     public ResponseEntity<APIResponse<LoginValidationResult>>  authenticateUser(@Valid @RequestBody UserDTO user, HttpServletResponse response){
         try {
             return ResponseEntity.ok().body(APIResponse.success("Login successful", userService.login(user.getEmail(), user.getPassword())));
-        } catch (IllegalArgumentException e) {
+        } catch (InvalidUserException e) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(APIResponse.error("Login unsuccessful", "Invalid Credentials"));
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(APIResponse.error("Server Issue", e.getMessage()));
@@ -50,7 +51,7 @@ public class UserController {
     public ResponseEntity<APIResponse<Boolean>>  changePassword(@RequestParam String email, @RequestParam String password){
         try {
             return ResponseEntity.ok().body(APIResponse.success("Password changed", userService.changePassword(email, password)));
-        } catch (IllegalArgumentException e) {
+        } catch (InvalidUserException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(APIResponse.error("User Not Found", "User Not Found"));
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(APIResponse.error("Server Issue", e.getMessage()));
