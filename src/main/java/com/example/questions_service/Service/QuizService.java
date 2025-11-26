@@ -13,6 +13,8 @@ import com.github.benmanes.caffeine.cache.Caffeine;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.binder.cache.CaffeineCacheMetrics;
 import jakarta.annotation.PostConstruct;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -30,8 +32,10 @@ public class QuizService {
     QuizAnswersCache quizAnswersCache;
     @Autowired
     QuestionRepository questionRepository;
+    private static final Logger logger = LoggerFactory.getLogger(QuizService.class);
 
     public QuizDTO getQuestions(String category, int numberOfEasy, int numberOfMedium, int numberOfDifficult, String authHeader) {
+        logger.info("Service: Fetching questions for category: {} with Easy: {}, Medium: {}, Difficult: {}", category, numberOfEasy, numberOfMedium, numberOfDifficult);
         List<Question> result = new ArrayList<>();
         Map<String, Integer> difficultyCount = Map.of(
                 "EASY", numberOfEasy,
@@ -56,15 +60,19 @@ public class QuizService {
             questions.add(new QuestionResponseDTO(q.getQuestion(), q.getCategory(), q.getDifficulty(), q.getOption1(), q.getOption2(), q.getOption3(), q.getOption4(), q.getType()));
         }
         quizAnswersCache.put(quizID, answers);
+        logger.info("Service: Questions fetched successfully for quizID: {}", quizID);
         return new QuizDTO(questions, quizID);
     }
 
     private List<Question> getAllQuestions(String topic, String difficulty) {
+        logger.info("Service: Retrieving questions for topic: {} and difficulty: {} from cache", topic, difficulty);
         List<Question> questions = questionsCache.get(topic, difficulty);
         if(questions != null){
             return questions;
         }
+        logger.info("Service: Cache miss for topic: {} and difficulty: {}. Fetching from database.", topic, difficulty);
         questions = fetchQuestionsFromDatabase(topic, difficulty);
+        logger.info("Service: Storing fetched questions in cache for topic: {} and difficulty: {}", topic, difficulty);
         questionsCache.put(topic, difficulty, questions);
         return questions;
     }
@@ -79,8 +87,10 @@ public class QuizService {
     }
 
     public List<AnswerResponseDTO> getAnswers(String quizId){
+        logger.info("Service: Fetching answers for quizId: {}", quizId);
         var answers = quizAnswersCache.get(quizId);
         quizAnswersCache.invalidateKey(quizId);
+        logger.info("Service: Answers fetched for quizId: {}", quizId);
         return answers;
     }
 }
