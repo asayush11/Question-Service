@@ -19,10 +19,10 @@ public class UserTokenCache {
     @Autowired
     private MeterRegistry meterRegistry;
     @Value("${refreshTokenTimeHour}")
-    private static int refreshTokenTime;
+    private int refreshTokenTime;
     private static final Logger logger = LoggerFactory.getLogger(UserTokenCache.class);
 
-    private static final com.github.benmanes.caffeine.cache.Cache<String, String> userTokenCache = Caffeine.newBuilder()
+    private final com.github.benmanes.caffeine.cache.Cache<String, String> userTokenCache = Caffeine.newBuilder()
             .expireAfterWrite(refreshTokenTime, TimeUnit.HOURS)
             .recordStats()
             .build();
