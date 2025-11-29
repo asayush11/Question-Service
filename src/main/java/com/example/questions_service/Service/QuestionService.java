@@ -24,7 +24,7 @@ public class QuestionService {
         try {
             logger.info("Service: Creating new question: {}", question.getQuestion());
             questionRepository.save(question);
-            questionsCache.invalidateKey(question.getCategory(), question.getDifficulty());
+            questionsCache.invalidateKey(question.getSubject(), question.getDifficulty());
         } catch (Exception e) {
             logger.error("Service: Failed to add question: {}", e.getMessage());
             throw new Exception("Failed to add question", e);

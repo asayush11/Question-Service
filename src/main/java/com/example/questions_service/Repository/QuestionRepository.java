@@ -10,8 +10,8 @@ import java.util.List;
 
 @Repository
 public interface QuestionRepository extends JpaRepository<Question,Integer> {
-    @Query("SELECT q FROM Question q WHERE q.category = :category AND q.difficulty = :difficulty")
-    public List<Question> findByCategoryAndDifficulty(@Param("category") String category, @Param("difficulty") String difficulty);
+    @Query("SELECT q FROM Question q WHERE q.subject = :subject AND q.difficulty = :difficulty")
+    List<Question> findBySubjectAndDifficulty(@Param("subject") String subject, @Param("difficulty") String difficulty);
 
     @Query(value = "SELECT 1", nativeQuery = true)
     void wakeDbLightly();

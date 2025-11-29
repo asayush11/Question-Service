@@ -34,8 +34,8 @@ public class QuizService {
     QuestionRepository questionRepository;
     private static final Logger logger = LoggerFactory.getLogger(QuizService.class);
 
-    public QuizDTO getQuestions(String category, int numberOfEasy, int numberOfMedium, int numberOfDifficult, String authHeader) {
-        logger.info("Service: Fetching questions for category: {} with Easy: {}, Medium: {}, Difficult: {}", category, numberOfEasy, numberOfMedium, numberOfDifficult);
+    public QuizDTO getQuestions(String subject, int numberOfEasy, int numberOfMedium, int numberOfDifficult, String authHeader) {
+        logger.info("Service: Fetching questions for subject: {} with Easy: {}, Medium: {}, Difficult: {}", subject, numberOfEasy, numberOfMedium, numberOfDifficult);
         List<Question> result = new ArrayList<>();
         Map<String, Integer> difficultyCount = Map.of(
                 "EASY", numberOfEasy,
@@ -46,40 +46,40 @@ public class QuizService {
         for (Map.Entry<String, Integer> entry : difficultyCount.entrySet()) {
             String difficulty = entry.getKey();
             int count = entry.getValue();
-            List<Question> questions = getAllQuestions(category, difficulty);
+            List<Question> questions = getAllQuestions(subject, difficulty);
             Collections.shuffle(questions);
             result.addAll(questions.subList(0, Math.min(count, questions.size())));
         }
         userHelper.updateStats(authHeader,1);
 
-        String quizID = category + quizAnswersCache.estimatedSize() + " " + numberOfDifficult + " " + numberOfMedium + " " + numberOfEasy;
+        String quizID = subject + quizAnswersCache.estimatedSize() + " " + numberOfDifficult + " " + numberOfMedium + " " + numberOfEasy;
         List<AnswerResponseDTO> answers = new ArrayList<>();
         List<QuestionResponseDTO> questions = new ArrayList<>();
         for(Question q : result){
             answers.add(new AnswerResponseDTO(q.getAnswer(), q.getSolution()));
-            questions.add(new QuestionResponseDTO(q.getQuestion(), q.getCategory(), q.getDifficulty(), q.getOption1(), q.getOption2(), q.getOption3(), q.getOption4(), q.getType()));
+            questions.add(new QuestionResponseDTO(q.getQuestion(), q.getSubject(), q.getDifficulty(), q.getOption1(), q.getOption2(), q.getOption3(), q.getOption4(), q.getType()));
         }
         quizAnswersCache.put(quizID, answers);
         logger.info("Service: Questions fetched successfully for quizID: {}", quizID);
         return new QuizDTO(questions, quizID);
     }
 
-    private List<Question> getAllQuestions(String topic, String difficulty) {
-        logger.info("Service: Retrieving questions for topic: {} and difficulty: {} from cache", topic, difficulty);
-        List<Question> questions = questionsCache.get(topic, difficulty);
+    private List<Question> getAllQuestions(String subject, String difficulty) {
+        logger.info("Service: Retrieving questions for subject: {} and difficulty: {} from cache", subject, difficulty);
+        List<Question> questions = questionsCache.get(subject, difficulty);
         if(questions != null){
             return questions;
         }
-        logger.info("Service: Cache miss for topic: {} and difficulty: {}. Fetching from database.", topic, difficulty);
-        questions = fetchQuestionsFromDatabase(topic, difficulty);
-        logger.info("Service: Storing fetched questions in cache for topic: {} and difficulty: {}", topic, difficulty);
-        questionsCache.put(topic, difficulty, questions);
+        logger.info("Service: Cache miss for subject: {} and difficulty: {}. Fetching from database.", subject, difficulty);
+        questions = fetchQuestionsFromDatabase(subject, difficulty);
+        logger.info("Service: Storing fetched questions in cache for subject: {} and difficulty: {}", subject, difficulty);
+        questionsCache.put(subject, difficulty, questions);
         return questions;
     }
 
-    private List<Question> fetchQuestionsFromDatabase(String topic, String difficulty) {
+    private List<Question> fetchQuestionsFromDatabase(String subject, String difficulty) {
         try {
-            List<Question> questions = questionRepository.findByCategoryAndDifficulty(topic, difficulty);
+            List<Question> questions = questionRepository.findBySubjectAndDifficulty(subject, difficulty);
             return questions != null ? questions : new ArrayList<>();
         } catch (Exception e) {
             return new ArrayList<>();

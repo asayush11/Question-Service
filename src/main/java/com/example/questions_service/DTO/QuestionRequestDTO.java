@@ -9,9 +9,9 @@ public class QuestionRequestDTO {
     @NotNull(message = "Enter valid question")
     @Size(min = 1)
     private String question;
-    @NotNull(message = "Enter valid category")
+    @NotNull(message = "Enter valid subject")
     @Size(min = 1)
-    private String category;
+    private String subject;
     private String difficulty;
     @NotNull(message = "Enter valid option 1")
     @Size(min = 1)
@@ -38,8 +38,8 @@ public class QuestionRequestDTO {
         return question;
     }
 
-    public String getCategory() {
-        return category;
+    public String getSubject() {
+        return subject;
     }
 
     public String getDifficulty() {
@@ -65,9 +65,9 @@ public class QuestionRequestDTO {
         return solution;
     }
 
-    public QuestionRequestDTO(String question, String category, String difficulty, String option1, String option2, String option3, String option4, String solution, String type, List<String> answer) {
+    public QuestionRequestDTO(String question, String subject, String difficulty, String option1, String option2, String option3, String option4, String solution, String type, List<String> answer) {
         this.question = question;
-        this.category = category;
+        this.subject = subject;
         this.difficulty = difficulty;
         this.option1 = option1;
         this.option2 = option2;

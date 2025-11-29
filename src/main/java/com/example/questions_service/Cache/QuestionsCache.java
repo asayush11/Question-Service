@@ -37,24 +37,24 @@ public class QuestionsCache {
         CaffeineCacheMetrics.monitor(meterRegistry, questionsCache, "questionsCache");
     }
 
-    public List<Question> get(String topic, String difficulty) {
-        logger.info("Cache: Retrieving questions from cache for topic: {} and difficulty: {}", topic, difficulty);
-        String key = getCacheKey(topic, difficulty);
+    public List<Question> get(String subject, String difficulty) {
+        logger.info("Cache: Retrieving questions from cache for subject: {} and difficulty: {}", subject, difficulty);
+        String key = getCacheKey(subject, difficulty);
         return questionsCache.getIfPresent(key);
     }
 
-    public void put(String topic, String difficulty, List<Question> questions) {
-        logger.info("Cache: Storing questions in cache for topic: {} and difficulty: {}", topic, difficulty);
-        String key = getCacheKey(topic, difficulty);
+    public void put(String subject, String difficulty, List<Question> questions) {
+        logger.info("Cache: Storing questions in cache for subject: {} and difficulty: {}", subject, difficulty);
+        String key = getCacheKey(subject, difficulty);
         questionsCache.put(key, questions);
     }
 
-    public void invalidateKey(String category, String difficulty) {
-        logger.info("Cache: Invalidating cache for category: {} and difficulty: {}", category, difficulty);
-        String key = getCacheKey(category, difficulty);
+    public void invalidateKey(String subject, String difficulty) {
+        logger.info("Cache: Invalidating cache for subject: {} and difficulty: {}", subject, difficulty);
+        String key = getCacheKey(subject, difficulty);
         questionsCache.invalidate(key);
     }
-    private String getCacheKey(String topic, String difficulty) {
-        return topic.toUpperCase().trim() + "_" + difficulty.toUpperCase().trim();
+    private String getCacheKey(String subject, String difficulty) {
+        return subject.toUpperCase().trim() + "_" + difficulty.toUpperCase().trim();
     }
 }
