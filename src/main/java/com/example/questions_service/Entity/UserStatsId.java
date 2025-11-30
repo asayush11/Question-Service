@@ -6,12 +6,12 @@ import java.util.Objects;
 public class UserStatsId implements Serializable {
 
     private String quizId;
-    private String emailID;
+    private String emailId;
     public UserStatsId() {
     }
-    public UserStatsId(String quizId, String emailID) {
+    public UserStatsId(String quizId, String emailId) {
         this.quizId = quizId;
-        this.emailID = emailID;
+        this.emailId = emailId;
     }
     public String getQuizId() {
         return quizId;
@@ -19,11 +19,11 @@ public class UserStatsId implements Serializable {
     public void setQuizId(String quizId) {
         this.quizId = quizId;
     }
-    public String getEmailID() {
-        return emailID;
+    public String getEmailId() {
+        return emailId;
     }
-    public void setEmailID(String emailID) {
-        this.emailID = emailID;
+    public void setEmailId(String emailId) {
+        this.emailId = emailId;
     }
     // MUST implement equals() and hashCode()
     @Override
@@ -32,11 +32,11 @@ public class UserStatsId implements Serializable {
         if (o == null || getClass() != o.getClass()) return false;
         UserStatsId that = (UserStatsId) o;
         return Objects.equals(quizId, that.getQuizId()) &&
-                Objects.equals(emailID, that.getEmailID());
+                Objects.equals(emailId, that.getEmailId());
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(quizId, emailID);
+        return Objects.hash(quizId, emailId);
     }
 }

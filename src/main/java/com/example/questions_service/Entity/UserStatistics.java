@@ -4,23 +4,27 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.IdClass;
 
+import java.time.LocalDateTime;
+
 @Entity
 @IdClass(UserStatsId.class)
 public class UserStatistics {
     @Id
     private String quizId;
     @Id
-    private String emailID;
+    private String emailId;
     private String quizType;
     private Integer totalQuestions;
     private Integer correctAnswers;
     private Integer incorrectAnswers;
     private Double percentageScore;
-    private String dateTaken;
+    private LocalDateTime dateTaken;
 
-    public UserStatistics(String quizId, String emailID, String quizType, Integer totalQuestions, Integer correctAnswers, Integer incorrectAnswers, Double percentageScore) {
+    public UserStatistics() {}
+
+    public UserStatistics(String quizId, String emailId, String quizType, Integer totalQuestions, Integer correctAnswers, Integer incorrectAnswers, Double percentageScore) {
         this.quizId = quizId;
-        this.emailID = emailID;
+        this.emailId = emailId;
         this.quizType = quizType;
         this.totalQuestions = totalQuestions;
         this.correctAnswers = correctAnswers;
@@ -32,8 +36,8 @@ public class UserStatistics {
         return quizId;
     }
 
-    public String getEmailID() {
-        return emailID;
+    public String getEmailId() {
+        return emailId;
     }
 
     public String getQuizType() {
@@ -56,7 +60,7 @@ public class UserStatistics {
         return percentageScore;
     }
 
-    public String getDateTaken() {
+    public LocalDateTime getDateTaken() {
         return dateTaken;
     }
 }
