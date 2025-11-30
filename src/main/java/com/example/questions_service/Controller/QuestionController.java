@@ -22,7 +22,7 @@ public class QuestionController {
     QuestionService questionService;
     private static final Logger logger = LoggerFactory.getLogger(QuestionController.class);
     @PostMapping("/create")
-    public ResponseEntity<APIResponse<String>> addQuestion(@RequestHeader("Authorization") String authHeader, @Valid @RequestBody QuestionRequestDTO question){
+    public ResponseEntity<APIResponse<String>> addQuestion(@Valid @RequestBody QuestionRequestDTO question){
         logger.info("Controller: Attempting to add new question: {}", question.getQuestion());
         if(!Objects.equals(question.getDifficulty(), "HARD") || !Objects.equals(question.getDifficulty(), "EASY") || !Objects.equals(question.getDifficulty(), "MEDIUM")){
             logger.error("Controller: Failed to add question - invalid difficulty: {}", question.getDifficulty());
@@ -30,7 +30,7 @@ public class QuestionController {
         }
         try{
             Question newQuestion = new Question(question);
-            questionService.createQuestion(newQuestion, authHeader);
+            questionService.createQuestion(newQuestion);
             logger.info("Controller: Question added successfully: {}", question.getQuestion());
             return ResponseEntity.status(HttpStatus.CREATED).body(APIResponse.success("Question added successfully", newQuestion.getQuestion()));
         } catch (Exception e){

@@ -35,7 +35,7 @@ public class JWTAuthFilter implements Filter {
         HttpServletResponse response = (HttpServletResponse) res;
         String path = request.getRequestURI();
 
-        List<String> publicEndpoints = Arrays.asList("/users", "/actuator");
+        List<String> publicEndpoints = Arrays.asList("/actuator", "/users/login", "/users/create", "/users/change-password");
         List<String> adminEndpoints = Arrays.asList("/question", "/notes/addNote", "/notes/updateNote", "/notes/deleteNote");
 
         if (publicEndpoints.stream().anyMatch(path::startsWith) || request.getMethod().equalsIgnoreCase("OPTIONS")) {

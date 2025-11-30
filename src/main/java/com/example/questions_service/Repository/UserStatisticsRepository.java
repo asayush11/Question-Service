@@ -14,6 +14,8 @@ import java.util.Optional;
 
 @Repository
 public interface UserStatisticsRepository extends JpaRepository<UserStatistics, UserStatsId> {
-    @Query("SELECT u.quizId, u.quizType, u.percentageScore, u.dateTaken FROM UserStatistics u WHERE u.emailId = :emailId")
+    @Query("SELECT new com.example.questions_service.DTO.UserStatsResponseDTO(" +
+            "u.quizId, u.quizType, u.percentageScore, u.dateTaken) " +
+            "FROM UserStatistics u WHERE u.emailId = :emailId")
     List<UserStatsResponseDTO> findStatsByEmailId(@Param("emailId") String emailId);
 }

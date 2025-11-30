@@ -23,7 +23,7 @@ public class QuizAnswersCache {
     private int answersTimeHour;
     private static final Logger logger = LoggerFactory.getLogger(QuizAnswersCache.class);
 
-    private final com.github.benmanes.caffeine.cache.Cache<String, List<AnswerResponseDTO>> quizAnswersCache = Caffeine.newBuilder()
+    private final com.github.benmanes.caffeine.cache.Cache<String, AnswerResponseDTO> quizAnswersCache = Caffeine.newBuilder()
             .expireAfterAccess(answersTimeHour, TimeUnit.HOURS)
             .recordStats()
             .build();
@@ -33,12 +33,12 @@ public class QuizAnswersCache {
         CaffeineCacheMetrics.monitor(meterRegistry, quizAnswersCache, "quizAnswersCache");
     }
 
-    public List<AnswerResponseDTO> get(String quizId) {
+    public AnswerResponseDTO get(String quizId) {
         logger.info("Cache: Retrieving answers from cache for quizId: {}", quizId);
         return quizAnswersCache.getIfPresent(quizId);
     }
 
-    public void put(String quizId, List<AnswerResponseDTO> answers) {
+    public void put(String quizId, AnswerResponseDTO answers) {
         logger.info("Cache: Storing answers in cache for quizId: {}", quizId);
         quizAnswersCache.put(quizId, answers);
     }

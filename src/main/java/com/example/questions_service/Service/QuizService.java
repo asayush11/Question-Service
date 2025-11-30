@@ -1,10 +1,12 @@
 package com.example.questions_service.Service;
 import com.example.questions_service.Cache.QuestionsCache;
 import com.example.questions_service.Cache.QuizAnswersCache;
+import com.example.questions_service.DTO.AnswerKeyDTO;
 import com.example.questions_service.DTO.AnswerResponseDTO;
 import com.example.questions_service.DTO.QuestionResponseDTO;
 import com.example.questions_service.DTO.QuizDTO;
 import com.example.questions_service.Entity.Question;
+import com.example.questions_service.Entity.UserStatistics;
 import com.example.questions_service.Exception.UserNotAdminException;
 import com.example.questions_service.Repository.QuestionRepository;
 import com.example.questions_service.Utility.UserHelper;
@@ -25,7 +27,7 @@ import java.util.concurrent.TimeUnit;
 public class QuizService {
 
     @Autowired
-    UserHelper userHelper;
+    UserService userService;
     @Autowired
     QuestionsCache questionsCache;
     @Autowired
@@ -34,7 +36,7 @@ public class QuizService {
     QuestionRepository questionRepository;
     private static final Logger logger = LoggerFactory.getLogger(QuizService.class);
 
-    public QuizDTO getQuestions(String subject, int numberOfEasy, int numberOfMedium, int numberOfDifficult, String authHeader) {
+    public QuizDTO getQuestions(String subject, int numberOfEasy, int numberOfMedium, int numberOfDifficult, String email) {
         logger.info("Service: Fetching questions for subject: {} with Easy: {}, Medium: {}, Difficult: {}", subject, numberOfEasy, numberOfMedium, numberOfDifficult);
         List<Question> result = new ArrayList<>();
         Map<String, Integer> difficultyCount = Map.of(
@@ -50,16 +52,17 @@ public class QuizService {
             Collections.shuffle(questions);
             result.addAll(questions.subList(0, Math.min(count, questions.size())));
         }
-        userHelper.updateStats(authHeader,1);
+        userService.updateQuizzesTaken(email,1);
 
         String quizID = subject + quizAnswersCache.estimatedSize() + " " + numberOfDifficult + " " + numberOfMedium + " " + numberOfEasy;
-        List<AnswerResponseDTO> answers = new ArrayList<>();
+        List<AnswerKeyDTO> answers = new ArrayList<>();
         List<QuestionResponseDTO> questions = new ArrayList<>();
         for(Question q : result){
-            answers.add(new AnswerResponseDTO(q.getAnswer(), q.getSolution()));
+            answers.add(new AnswerKeyDTO(q.getSolution(), q.getAnswer()));
             questions.add(new QuestionResponseDTO(q.getQuestion(), q.getSubject(), q.getDifficulty(), q.getOption1(), q.getOption2(), q.getOption3(), q.getOption4(), q.getType()));
         }
-        quizAnswersCache.put(quizID, answers);
+        AnswerResponseDTO correctAnswers = new AnswerResponseDTO(answers, answers.size());
+        quizAnswersCache.put(quizID, correctAnswers);
         logger.info("Service: Questions fetched successfully for quizID: {}", quizID);
         return new QuizDTO(questions, quizID);
     }
@@ -86,11 +89,53 @@ public class QuizService {
         }
     }
 
-    public List<AnswerResponseDTO> getAnswers(String quizId){
+    public AnswerResponseDTO getAnswers(String quizId, List<List<String>> userAnswers, String email) {
         logger.info("Service: Fetching answers for quizId: {}", quizId);
-        var answers = quizAnswersCache.get(quizId);
+        AnswerResponseDTO answers = quizAnswersCache.get(quizId);
         quizAnswersCache.invalidateKey(quizId);
         logger.info("Service: Answers fetched for quizId: {}", quizId);
-        return answers;
+        logger.info("Service: Computing results for quizId: {}", quizId);
+        return computeResults(answers, userAnswers, email, quizId);
+    }
+
+    private AnswerResponseDTO computeResults(AnswerResponseDTO correctAnswers, List<List<String>> userAnswers, String email, String quizId) {
+        int correctCount = 0;
+        int notAttempted = 0;
+        int totalQuestions = correctAnswers.getTotalQuestions();
+        List<AnswerKeyDTO> answerKeys = correctAnswers.getAnswers();
+
+        for (int i = 0; i < totalQuestions; i++) {
+            List<String> userAnswer = userAnswers.get(i);
+            if(userAnswer.isEmpty()){
+                notAttempted++;
+                continue;
+            }
+            List<String> correctAnswer = answerKeys.get(i).getAnswerKey();
+            if (new HashSet<>(userAnswer).equals(new HashSet<>(correctAnswer))) {
+                correctCount++;
+            }
+        }
+
+        int incorrectCount = totalQuestions - correctCount - notAttempted;
+        double percentageScore = (( correctCount - (0.5 * incorrectCount)) / totalQuestions) * 100;
+
+        correctAnswers.setCorrectAnswers(correctCount);
+        correctAnswers.setIncorrectAnswers(incorrectCount);
+        correctAnswers.setPercentageScore(percentageScore);
+
+        logger.info("Service: Results computed - Correct: {}, Incorrect: {}, Percentage: {}%", correctCount, incorrectCount, percentageScore);
+
+        UserStatistics statistics = new UserStatistics(
+                quizId,
+                email,
+                "Practice",
+                totalQuestions,
+                correctCount,
+                incorrectCount,
+                percentageScore
+        );
+        userService.updateStats(email, statistics);
+
+        return correctAnswers;
     }
 }

@@ -2,9 +2,13 @@ package com.example.questions_service.Service;
 
 import com.example.questions_service.Cache.UserTokenCache;
 import com.example.questions_service.Controller.UserController;
+import com.example.questions_service.DTO.UserStatsResponseDTO;
 import com.example.questions_service.Entity.User;
+import com.example.questions_service.Entity.UserStatistics;
+import com.example.questions_service.Entity.UserStatsId;
 import com.example.questions_service.Exception.InvalidUserException;
 import com.example.questions_service.Repository.UserRepository;
+import com.example.questions_service.Repository.UserStatisticsRepository;
 import com.example.questions_service.Utility.JWTUtil;
 import com.example.questions_service.Utility.LoginValidationResult;
 import com.example.questions_service.Utility.UserHelper;
@@ -17,8 +21,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+
+import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
@@ -28,6 +35,8 @@ public class UserService {
     PasswordEncoder passwordEncoder;
     @Autowired
     UserRepository userRepository;
+    @Autowired
+    UserStatisticsRepository userStatisticsRepository;
     @Autowired
     UserHelper userHelper;
     @Autowired
@@ -90,5 +99,38 @@ public class UserService {
         logger.warn("Service: Deleting account for user with email: {}", email);
         userRepository.deleteByEmail(email);
         logger.info("Service: Account deleted successfully for user with email: {}", email);
+    }
+
+    @Async
+    public void updateQuizzesTaken(String email, int quizInc) {
+        try {
+            logger.info("Helper: Updating user stats");
+            userRepository.incrementStatsByEmail(email, quizInc);
+            logger.info("Helper: User stats updated successfully");
+        } catch (Exception e) {
+            logger.error("Helper: Failed to update user stats: {}", e.getMessage());
+        }
+    }
+
+    @Async
+    public void updateStats(String email, UserStatistics userStatistics){
+        try {
+            logger.info("Helper: Updating user statistics for email: {}", email);
+            userStatisticsRepository.save(userStatistics);
+            logger.info("Helper: User statistics updated successfully for email: {}", email);
+        } catch (Exception e) {
+            logger.error("Helper: Failed to update user statistics for email: {}: {}", email, e.getMessage());
+        }
+    }
+
+    public List<UserStatsResponseDTO> getUserStats(String email){
+        logger.info("Service: Retrieving user statistics for email: {}", email);
+        return userStatisticsRepository.findStatsByEmailId(email);
+    }
+
+    public UserStatistics getUserStatisticsRecord(String email, String quizId){
+        logger.info("Service: Retrieving user statistics record for email: {} and quizId: {}", email, quizId);
+        Optional<UserStatistics> userStatistics = userStatisticsRepository.findById(new UserStatsId(quizId, email));
+        return userStatistics.orElse(null);
     }
 }

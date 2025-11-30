@@ -3,19 +3,46 @@ package com.example.questions_service.DTO;
 import java.util.List;
 
 public class AnswerResponseDTO {
-    private final List<String> answer;
-    private final String solution;
+    private final List<AnswerKeyDTO> answers;
+    private final Integer totalQuestions;
+    private Integer correctAnswers;
+    private Integer incorrectAnswers;
+    private Double percentageScore;
 
-    public AnswerResponseDTO(List<String> answer, String solution) {
-        this.answer = answer;
-        this.solution = solution;
+    public AnswerResponseDTO(List<AnswerKeyDTO> answers, Integer totalQuestions) {
+        this.answers = answers;
+        this.totalQuestions = totalQuestions;
     }
 
-    public List<String> getAnswer() {
-        return answer;
+    public List<AnswerKeyDTO> getAnswers() {
+        return answers;
     }
 
-    public String getSolution() {
-        return solution;
+    public Integer getTotalQuestions() {
+        return totalQuestions;
+    }
+
+    public Integer getCorrectAnswers() {
+        return correctAnswers;
+    }
+
+    public Integer getIncorrectAnswers() {
+        return incorrectAnswers;
+    }
+
+    public Double getPercentageScore() {
+        return percentageScore;
+    }
+
+    public void setCorrectAnswers(Integer correctAnswers) {
+        this.correctAnswers = correctAnswers;
+    }
+
+    public void setIncorrectAnswers(Integer incorrectAnswers) {
+        this.incorrectAnswers = incorrectAnswers;
+    }
+
+    public void setPercentageScore(Double percentageScore) {
+        this.percentageScore = percentageScore;
     }
 }

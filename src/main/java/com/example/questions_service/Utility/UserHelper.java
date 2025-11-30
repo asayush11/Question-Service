@@ -3,14 +3,10 @@ package com.example.questions_service.Utility;
 import com.example.questions_service.Cache.UserTokenCache;
 import com.example.questions_service.Entity.User;
 import com.example.questions_service.Repository.UserRepository;
-import com.example.questions_service.Service.UserService;
-import com.example.questions_service.Utility.JWTUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
-import org.springframework.stereotype.Service;
 
 import java.util.Optional;
 
@@ -23,18 +19,6 @@ public class UserHelper {
     @Autowired
     UserTokenCache userTokenCache;
     private static final Logger logger = LoggerFactory.getLogger(UserHelper.class);
-    @Async
-    public void updateStats(String authHeader, int quizInc) {
-        try {
-            logger.info("Helper: Updating user stats");
-            String token = authHeader.replace("Bearer","");
-            String email = jwtUtil.validateToken(token).email();
-            userRepository.incrementStatsByEmail(email, quizInc);
-            logger.info("Helper: User stats updated successfully");
-        } catch (Exception e) {
-            logger.error("Helper: Failed to update user stats: {}", e.getMessage());
-        }
-    }
 
     public boolean validateAdmin(String token) throws Exception{
         try {

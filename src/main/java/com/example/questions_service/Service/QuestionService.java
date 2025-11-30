@@ -20,7 +20,7 @@ public class QuestionService {
     @Autowired
     QuestionsCache questionsCache;
     private static final Logger logger = LoggerFactory.getLogger(QuestionService.class);
-    public void createQuestion(Question question, String authHeader) throws Exception{
+    public void createQuestion(Question question) throws Exception{
         try {
             logger.info("Service: Creating new question: {}", question.getQuestion());
             questionRepository.save(question);
