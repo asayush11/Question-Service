@@ -53,4 +53,28 @@ public class NotesController {
         }
     }
 
+    @PutMapping("/updateNote")
+    public ResponseEntity<APIResponse<Notes>> updateNote(@Valid @RequestBody Notes note) {
+        try{
+            logger.info("Controller: Updating note for subject: {}, topic: {}", note.getSubject(), note.getTopic());
+            Notes updatedNote = notesService.updateNote(note.getTopic(), note.getSubject(), note.getContent());
+            return ResponseEntity.ok().body(APIResponse.success("Note Updated", updatedNote));
+        } catch (Exception e){
+            logger.error("Controller: Server Error updating note for subject {} and topic {}: {}", note.getSubject(), note.getTopic(), e.getMessage());
+            return ResponseEntity.internalServerError().body(APIResponse.error("Error updating note", e.getMessage()));
+        }
+    }
+
+    @DeleteMapping("/deleteNote/{subject}/{topic}")
+    public ResponseEntity<APIResponse<String>> deleteNote(@PathVariable String subject, @PathVariable String topic) {
+        try{
+            logger.info("Controller: Deleting note for subject: {}, topic: {}", subject, topic);
+            notesService.deleteNote(topic, subject);
+            return ResponseEntity.ok().body(APIResponse.success("Note Deleted", "Note deleted successfully"));
+        } catch (Exception e){
+            logger.error("Controller: Server Error deleting note for subject {} and topic {}: {}", subject, topic, e.getMessage());
+            return ResponseEntity.internalServerError().body(APIResponse.error("Error deleting note", e.getMessage()));
+        }
+    }
+
 }

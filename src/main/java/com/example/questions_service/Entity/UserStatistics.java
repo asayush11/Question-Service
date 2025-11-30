@@ -1,10 +1,15 @@
 package com.example.questions_service.Entity;
 
 import jakarta.persistence.Entity;
+import jakarta.persistence.Id;
+import jakarta.persistence.IdClass;
 
 @Entity
+@IdClass(UserStatsId.class)
 public class UserStatistics {
+    @Id
     private String quizId;
+    @Id
     private String emailID;
     private String quizType;
     private Integer totalQuestions;

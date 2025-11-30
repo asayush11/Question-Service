@@ -47,4 +47,10 @@ public class NotesCache {
         String key = getCacheKey(subject, topic);
         notesCache.put(key, content);
     }
+
+    public void remove(String subject, String topic) {
+        logger.info("Cache: Removing notes from cache for subject: {} and topic: {}", subject, topic);
+        String key = getCacheKey(subject, topic);
+        notesCache.invalidate(key);
+    }
 }

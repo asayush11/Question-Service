@@ -1,6 +1,7 @@
 package com.example.questions_service.Repository;
 
 import com.example.questions_service.Entity.Notes;
+import com.example.questions_service.Entity.NotesId;
 import com.example.questions_service.Entity.Question;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -11,11 +12,8 @@ import java.util.List;
 import java.util.Optional;
 
 @Repository
-public interface NotesRepository extends JpaRepository<Notes, Long> {
+public interface NotesRepository extends JpaRepository<Notes, NotesId> {
 
     @Query("SELECT n.topic FROM Notes n WHERE n.subject = :subject")
-    Optional<List<String>> findBySubject(@Param("subject") String subject);
-
-    @Query("SELECT n.content FROM Notes n WHERE n.subject = :subject AND n.topic = :topic")
-    String findContentBySubjectAndTopic(@Param("subject") String subject, @Param("topic") String topic);
+    List<String> findBySubject(@Param("subject") String subject);
 }

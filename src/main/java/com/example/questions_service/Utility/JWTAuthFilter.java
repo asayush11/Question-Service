@@ -35,8 +35,9 @@ public class JWTAuthFilter implements Filter {
         HttpServletResponse response = (HttpServletResponse) res;
         String path = request.getRequestURI();
 
-        // Allow public endpoints
         List<String> publicEndpoints = Arrays.asList("/users", "/actuator");
+        List<String> adminEndpoints = Arrays.asList("/question", "/notes/addNote", "/notes/updateNote", "/notes/deleteNote");
+
         if (publicEndpoints.stream().anyMatch(path::startsWith) || request.getMethod().equalsIgnoreCase("OPTIONS")) {
             chain.doFilter(req, res);
             logger.info("Filter: Public endpoint accessed, proceeding without authentication");
@@ -44,61 +45,57 @@ public class JWTAuthFilter implements Filter {
         }
 
         // Secure endpoints
-        if (path.startsWith("/quiz") || path.startsWith("/question")) {
-            String authHeader = request.getHeader("Authorization");
+        String authHeader = request.getHeader("Authorization");
 
-            if (authHeader == null || !authHeader.toLowerCase().startsWith("bearer ")) {
-                response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Please login to proceed");
-                logger.error("Filter: Missing or invalid Authorization header");
-                return;
-            }
+        if (authHeader == null || !authHeader.toLowerCase().startsWith("bearer ")) {
+            response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Please login to proceed");
+            logger.error("Filter: Missing or invalid Authorization header");
+            return;
+        }
 
-            String token = authHeader.substring("Bearer ".length()).trim();
+        String token = authHeader.substring("Bearer ".length()).trim();
 
-            try {
-                var result = jwtUtil.validateToken(token);
-                if (result.isExpired()) {
-                    logger.info("Filter: Access token expired, attempting to refresh");
-                    var newToken = userHelper.updateToken(token, result.email());
-                    if (newToken != null) {
-                        // Send the new token in response header
-                        logger.info("Filter: Access token refreshed successfully");
-                        response.setHeader("X-New-Access-Token", newToken);
-                        if(path.startsWith("/question")) {
-                            logger.info("Filter: Validating admin privileges for question endpoint");
-                            boolean isAdmin = userHelper.validateAdmin(token);
-                            if (!isAdmin) {
-                                logger.error("Filter: Unauthorized access attempt to question endpoint");
-                                response.sendError(HttpServletResponse.SC_FORBIDDEN, "You're not allowed to perform this operation");
-                                return;
-                            }
-                        }
-                        chain.doFilter(req, res);
-                    } else {
-                        logger.error("Filter: Refresh token expired or invalid, cannot refresh access token");
-                        response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Session expired. Please login again.");
-                    }
-                } else {
-                    // Token valid
-                    if(path.startsWith("/question")) {
-                        logger.info("Filter: Validating admin privileges for question endpoint");
+        try {
+            var result = jwtUtil.validateToken(token);
+            if (result.isExpired()) {
+                logger.info("Filter: Access token expired, attempting to refresh");
+                var newToken = userHelper.updateToken(token, result.email());
+                if (newToken != null) {
+                    // Send the new token in response header
+                    logger.info("Filter: Access token refreshed successfully");
+                    response.setHeader("X-New-Access-Token", newToken);
+                    if (adminEndpoints.stream().anyMatch(path::startsWith)) {
+                        logger.info("Filter: Validating admin privileges for endpoint");
                         boolean isAdmin = userHelper.validateAdmin(token);
                         if (!isAdmin) {
-                            logger.error("Filter: Unauthorized access attempt to question endpoint");
+                            logger.error("Filter: Unauthorized access attempt to admin endpoint");
                             response.sendError(HttpServletResponse.SC_FORBIDDEN, "You're not allowed to perform this operation");
                             return;
                         }
                     }
                     chain.doFilter(req, res);
+                } else {
+                    logger.error("Filter: Refresh token expired or invalid, cannot refresh access token");
+                    response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Session expired. Please login again.");
                 }
-                return;
-            } catch (Exception e) {
-                logger.error("Filter: Token validation failed: {}", e.getMessage());
-                response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Please login to proceed");
-                return;
+            } else {
+                // Token valid
+                if (adminEndpoints.stream().anyMatch(path::startsWith)) {
+                    logger.info("Filter: Validating admin privileges for endpoint");
+                    boolean isAdmin = userHelper.validateAdmin(token);
+                    if (!isAdmin) {
+                        logger.error("Filter: Unauthorized access attempt to admin endpoint");
+                        response.sendError(HttpServletResponse.SC_FORBIDDEN, "You're not allowed to perform this operation");
+                        return;
+                    }
+                }
+                chain.doFilter(req, res);
             }
+        } catch (Exception e) {
+            logger.error("Filter: Token validation failed: {}", e.getMessage());
+            response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Please login to proceed");
         }
 
-        chain.doFilter(req, res);
+
     }
 }
