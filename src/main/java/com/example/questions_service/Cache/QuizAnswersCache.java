@@ -24,7 +24,7 @@ public class QuizAnswersCache {
     private static final Logger logger = LoggerFactory.getLogger(QuizAnswersCache.class);
 
     private final com.github.benmanes.caffeine.cache.Cache<String, AnswerResponseDTO> quizAnswersCache = Caffeine.newBuilder()
-            .expireAfterAccess(answersTimeHour, TimeUnit.HOURS)
+            .expireAfterWrite(answersTimeHour, TimeUnit.HOURS)
             .recordStats()
             .build();
 
