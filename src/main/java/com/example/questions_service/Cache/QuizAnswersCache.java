@@ -1,6 +1,7 @@
 package com.example.questions_service.Cache;
 
 import com.example.questions_service.DTO.AnswerResponseDTO;
+import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.binder.cache.CaffeineCacheMetrics;
@@ -22,14 +23,14 @@ public class QuizAnswersCache {
     @Value("${answersTimeHour}")
     private int answersTimeHour;
     private static final Logger logger = LoggerFactory.getLogger(QuizAnswersCache.class);
-
-    private final com.github.benmanes.caffeine.cache.Cache<String, AnswerResponseDTO> quizAnswersCache = Caffeine.newBuilder()
-            .expireAfterWrite(answersTimeHour, TimeUnit.HOURS)
-            .recordStats()
-            .build();
+    private Cache<String, AnswerResponseDTO> quizAnswersCache;
 
     @PostConstruct
-    public void bindCaffeineCacheMetrics() {
+    public void init() {
+        quizAnswersCache = Caffeine.newBuilder()
+                .expireAfterWrite(answersTimeHour, TimeUnit.HOURS)
+                .recordStats()
+                .build();
         CaffeineCacheMetrics.monitor(meterRegistry, quizAnswersCache, "quizAnswersCache");
     }
 

@@ -1,6 +1,7 @@
 package com.example.questions_service.Cache;
 
 import com.example.questions_service.Service.UserService;
+import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.binder.cache.CaffeineCacheMetrics;
@@ -21,14 +22,14 @@ public class UserTokenCache {
     @Value("${refreshTokenTimeHour}")
     private int refreshTokenTime;
     private static final Logger logger = LoggerFactory.getLogger(UserTokenCache.class);
-
-    private final com.github.benmanes.caffeine.cache.Cache<String, String> userTokenCache = Caffeine.newBuilder()
-            .expireAfterWrite(refreshTokenTime, TimeUnit.HOURS)
-            .recordStats()
-            .build();
+    private Cache<String, String> userTokenCache;
 
     @PostConstruct
     public void bindCaffeineCacheMetrics() {
+        userTokenCache = Caffeine.newBuilder()
+                .expireAfterWrite(refreshTokenTime, TimeUnit.HOURS)
+                .recordStats()
+                .build();
         CaffeineCacheMetrics.monitor(meterRegistry, userTokenCache, "userTokenCache");
     }
 

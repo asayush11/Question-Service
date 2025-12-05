@@ -18,16 +18,25 @@ import java.util.stream.Collectors;
 
 @Component
 public class DBWakeUp {
-    @Autowired
-    QuestionRepository questionRepository;
-    @Autowired
-    QuizCache quizCache;
-    @Autowired
-    QuizAnswersCache quizAnswersCache;
-    @Value("${liveQuizSize}")
-    private int liveQuizSize;
-    @Value("${mockSubjectQuizSize}")
-    private int mockSubjectQuizSize;
+    private final QuestionRepository questionRepository;
+    private final QuizCache quizCache;
+    private final QuizAnswersCache quizAnswersCache;
+    private final int liveQuizSize;
+    private final int mockSubjectQuizSize;
+
+    public DBWakeUp(
+            QuestionRepository questionRepository,
+            QuizCache quizCache,
+            QuizAnswersCache quizAnswersCache,
+            @Value("${liveQuizSize}") int liveQuizSize,
+            @Value("${mockSubjectQuizSize}") int mockSubjectQuizSize) {
+
+        this.questionRepository = questionRepository;
+        this.quizCache = quizCache;
+        this.quizAnswersCache = quizAnswersCache;
+        this.liveQuizSize = liveQuizSize;
+        this.mockSubjectQuizSize = mockSubjectQuizSize;
+    }
 
     @Scheduled(fixedDelay = 270000)
     public void warmUpDb() {

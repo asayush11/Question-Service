@@ -1,6 +1,7 @@
 package com.example.questions_service.Cache;
 
 import com.example.questions_service.Entity.Question;
+import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.binder.cache.CaffeineCacheMetrics;
@@ -21,19 +22,21 @@ public class QuizCache {
     @Value("${liveQuizDurationHours}")
     private int liveQuizDurationHours;
     private static final Logger logger = LoggerFactory.getLogger(QuizCache.class);
-
-    private final com.github.benmanes.caffeine.cache.Cache<String, List<Question>> mockQuiz = Caffeine.newBuilder()
-            .recordStats()
-            .build();
-
-    private final com.github.benmanes.caffeine.cache.Cache<String, List<Question>> liveQuiz = Caffeine.newBuilder()
-            .maximumSize(1)
-            .expireAfterWrite(liveQuizDurationHours, TimeUnit.HOURS)
-            .recordStats()
-            .build();
+    private Cache<String, List<Question>> mockQuiz;
+    private Cache<String, List<Question>> liveQuiz;
 
     @PostConstruct
     public void bindCaffeineCacheMetrics() {
+        mockQuiz = Caffeine.newBuilder()
+                .recordStats()
+                .build();
+
+        liveQuiz = Caffeine.newBuilder()
+                .maximumSize(1)
+                .expireAfterWrite(liveQuizDurationHours, TimeUnit.HOURS)
+                .recordStats()
+                .build();
+
         CaffeineCacheMetrics.monitor(meterRegistry, mockQuiz, "mockQuizCache");
         CaffeineCacheMetrics.monitor(meterRegistry, liveQuiz, "liveQuizCache");
     }

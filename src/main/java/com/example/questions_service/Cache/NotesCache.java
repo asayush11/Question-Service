@@ -1,6 +1,7 @@
 package com.example.questions_service.Cache;
 
 import com.example.questions_service.Entity.Question;
+import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.binder.cache.CaffeineCacheMetrics;
@@ -21,14 +22,15 @@ public class NotesCache {
     @Value("${notesCacheSize}")
     private int notesCacheSize;
     private static final Logger logger = LoggerFactory.getLogger(NotesCache.class);
-
-    private final com.github.benmanes.caffeine.cache.Cache<String, String> notesCache = Caffeine.newBuilder()
-            .maximumSize(notesCacheSize)
-            .recordStats()
-            .build();
+    private Cache<String, String> notesCache;
 
     @PostConstruct
     public void bindCaffeineCacheMetrics() {
+        notesCache = Caffeine.newBuilder()
+                .maximumSize(notesCacheSize)
+                .recordStats()
+                .build();
+
         CaffeineCacheMetrics.monitor(meterRegistry, notesCache, "notesCache");
     }
 
