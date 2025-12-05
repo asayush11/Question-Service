@@ -18,7 +18,7 @@ public class Question {
     private String option3;
     private String option4;
     private String solution;
-    private String type;
+    private String questionType;
     @ElementCollection
     @CollectionTable(
             name = "question_answer",
@@ -29,7 +29,7 @@ public class Question {
     public Question() {
     }
 
-    public Question(Long questionId, String question, String subject, String difficulty, String option1, String option2, String option3, String option4, String solution, String type, List<String> answer) {
+    public Question(Long questionId, String question, String subject, String difficulty, String option1, String option2, String option3, String option4, String solution, String questionType, List<String> answer) {
         this.questionId = questionId;
         this.question = question;
         this.subject = subject;
@@ -39,7 +39,7 @@ public class Question {
         this.option3 = option3;
         this.option4 = option4;
         this.solution = solution;
-        this.type = type;
+        this.questionType = questionType;
         this.answer = answer;
     }
 
@@ -52,7 +52,7 @@ public class Question {
         this.option3 = questionDTO.getOption3();
         this.option4 = questionDTO.getOption4();
         this.solution = questionDTO.getSolution();
-        this.type = questionDTO.getType();
+        this.questionType = questionDTO.getQuestionType();
         this.answer = questionDTO.getAnswer();
     }
 
@@ -92,8 +92,8 @@ public class Question {
         return solution;
     }
 
-    public String getType() {
-        return type;
+    public String getQuestionType() {
+        return questionType;
     }
 
     public List<String> getAnswer() {

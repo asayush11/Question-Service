@@ -18,9 +18,9 @@ public class JWTUtil {
     @Value("${jwt.secret}")
     private String secretKey;
     @Value("${refreshTokenTimeHour}")
-    private static int refreshTokenTime;
+    private int refreshTokenTime;
     @Value("${accessTokenTimeMinute}")
-    private static int accessTokenTime;
+    private int accessTokenTime;
     private Key key;
     private static final Logger logger = LoggerFactory.getLogger(JWTUtil.class);
     @PostConstruct

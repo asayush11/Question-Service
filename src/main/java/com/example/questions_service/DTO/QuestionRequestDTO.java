@@ -25,7 +25,7 @@ public class QuestionRequestDTO {
 
     @NotNull(message = "Enter valid type")
     @Size(min = 1)
-    private String type;
+    private String questionType;
 
     @NotNull(message = "Enter answers")
     @Size(min = 1)
@@ -65,7 +65,7 @@ public class QuestionRequestDTO {
         return solution;
     }
 
-    public QuestionRequestDTO(String question, String subject, String difficulty, String option1, String option2, String option3, String option4, String solution, String type, List<String> answer) {
+    public QuestionRequestDTO(String question, String subject, String difficulty, String option1, String option2, String option3, String option4, String solution, String questionType, List<String> answer) {
         this.question = question;
         this.subject = subject;
         this.difficulty = difficulty;
@@ -74,12 +74,12 @@ public class QuestionRequestDTO {
         this.option3 = option3;
         this.option4 = option4;
         this.solution = solution;
-        this.type = type;
+        this.questionType = questionType;
         this.answer = answer;
     }
 
-    public String getType() {
-        return type;
+    public String getQuestionType() {
+        return questionType;
     }
 
     public List<String> getAnswer() {

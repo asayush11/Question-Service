@@ -8,9 +8,9 @@ public class QuestionResponseDTO {
     private String option2;
     private String option3;
     private String option4;
-    private String type;
+    private String questionType;
 
-    public QuestionResponseDTO(String question, String subject, String difficulty, String option1, String option2, String option3, String option4, String type) {
+    public QuestionResponseDTO(String question, String subject, String difficulty, String option1, String option2, String option3, String option4, String questionType) {
         this.question = question;
         this.subject = subject;
         this.difficulty = difficulty;
@@ -18,7 +18,7 @@ public class QuestionResponseDTO {
         this.option2 = option2;
         this.option3 = option3;
         this.option4 = option4;
-        this.type = type;
+        this.questionType = questionType;
     }
 
     public String getQuestion() {
@@ -49,7 +49,7 @@ public class QuestionResponseDTO {
         return option4;
     }
 
-    public String getType() {
-        return type;
+    public String getQuestionType() {
+        return questionType;
     }
 }

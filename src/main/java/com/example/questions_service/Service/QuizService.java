@@ -78,7 +78,7 @@ public class QuizService {
         List<QuestionResponseDTO> questions = new ArrayList<>();
         for(Question q : result){
             answers.add(new AnswerKeyDTO(q.getSolution(), q.getAnswer()));
-            questions.add(new QuestionResponseDTO(q.getQuestion(), q.getSubject(), q.getDifficulty(), q.getOption1(), q.getOption2(), q.getOption3(), q.getOption4(), q.getType()));
+            questions.add(new QuestionResponseDTO(q.getQuestion(), q.getSubject(), q.getDifficulty(), q.getOption1(), q.getOption2(), q.getOption3(), q.getOption4(), q.getQuestionType()));
         }
         AnswerResponseDTO correctAnswers = new AnswerResponseDTO(answers, answers.size());
 
@@ -191,7 +191,7 @@ public class QuizService {
 
         List<QuestionResponseDTO> questions = new ArrayList<>();
         for (Question q : quiz) {
-            questions.add(new QuestionResponseDTO(q.getQuestion(), q.getSubject(), q.getDifficulty(), q.getOption1(), q.getOption2(), q.getOption3(), q.getOption4(), q.getType()));
+            questions.add(new QuestionResponseDTO(q.getQuestion(), q.getSubject(), q.getDifficulty(), q.getOption1(), q.getOption2(), q.getOption3(), q.getOption4(), q.getQuestionType()));
         }
 
         userService.updateQuizzesTaken(email, 1);
@@ -211,7 +211,7 @@ public class QuizService {
         List<QuestionResponseDTO> questions = new ArrayList<>();
         for (Question q : quiz) {
             answers.add(new AnswerKeyDTO(q.getSolution(), q.getAnswer()));
-            questions.add(new QuestionResponseDTO(q.getQuestion(), q.getSubject(), q.getDifficulty(), q.getOption1(), q.getOption2(), q.getOption3(), q.getOption4(), q.getType()));
+            questions.add(new QuestionResponseDTO(q.getQuestion(), q.getSubject(), q.getDifficulty(), q.getOption1(), q.getOption2(), q.getOption3(), q.getOption4(), q.getQuestionType()));
         }
         AnswerResponseDTO correctAnswers = new AnswerResponseDTO(answers, answers.size());
 
